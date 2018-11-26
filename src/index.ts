@@ -1,3 +1,5 @@
+import * as path from 'path';
+
 import { app, BrowserWindow, shell } from 'electron';
 
 const APP_URL = 'https://app.httptoolkit.tech';
@@ -8,8 +10,15 @@ let mainWindow: Electron.BrowserWindow | null = null;
 
 const createWindow = async () => {
     mainWindow = new BrowserWindow({
+        title: 'HTTP Toolkit',
+        icon: path.join(__dirname, 'src', 'icon.png'),
+        backgroundColor: '#d8e2e6',
+
         width: 1366,
         height: 768,
+        minWidth: 1024,
+        minHeight: 700,
+
         webPreferences: {
             contextIsolation: true,
             nodeIntegration: false
