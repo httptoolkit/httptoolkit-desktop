@@ -1,6 +1,8 @@
 import * as path from 'path';
-
 import { app, BrowserWindow, shell } from 'electron';
+
+// tslint:disable-next-line:no-var-requires
+const packageJson = require('../package.json');
 
 const APP_URL = 'https://app.httptoolkit.tech';
 
@@ -51,6 +53,16 @@ app.on('activate', () => {
 });
 
 app.on('web-contents-created', (_event, contents) => {
+    contents.on('dom-ready', () => {
+        // Define & announce the desktop shell version to the app
+        // Not used now, intended to allow us to detect and prompt for updates
+        // in future, if a certain desktop shell version is required.
+        contents.executeJavaScript(`
+            window.httpToolkitDesktopVersion = '${packageJson.version}';
+            window.postMessage({ httpToolkitDesktopVersion: window.httpToolkitDesktopVersion }, '*');
+        `);
+    });
+
     // Redirect all navigations & new windows to the system browser
     contents.on('will-navigate', (event, navigationUrl) => {
       const parsedUrl = new URL(navigationUrl);
@@ -69,4 +81,4 @@ app.on('web-contents-created', (_event, contents) => {
           shell.openExternal(navigationUrl);
         }
     });
-  })
+});
