@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, shell } from 'electron';
 
 const APP_URL = 'https://app.httptoolkit.tech';
 
@@ -11,6 +11,7 @@ const createWindow = async () => {
         width: 800,
         height: 600,
         webPreferences: {
+            contextIsolation: true,
             nodeIntegration: false
         }
     });
@@ -39,3 +40,24 @@ app.on('activate', () => {
         createWindow();
     }
 });
+
+app.on('web-contents-created', (_event, contents) => {
+    // Redirect all navigations & new windows to the system browser
+    contents.on('will-navigate', (event, navigationUrl) => {
+      const parsedUrl = new URL(navigationUrl);
+
+      if (parsedUrl.origin !== APP_URL) {
+        event.preventDefault();
+        shell.openExternal(navigationUrl);
+      }
+    });
+
+    contents.on('new-window', (event, navigationUrl) => {
+        const parsedUrl = new URL(navigationUrl);
+
+        if (parsedUrl.origin !== APP_URL) {
+          event.preventDefault();
+          shell.openExternal(navigationUrl);
+        }
+    });
+  })
