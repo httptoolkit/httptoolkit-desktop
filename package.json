@@ -1,0 +1,71 @@
+{
+  "name": "httptoolkit-desktop",
+  "productName": "httptoolkit-desktop",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Electron wrapper to build and distribute HTTP Toolkit for the desktop",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "tslint --project tsconfig.json --type-check --force"
+  },
+  "keywords": [],
+  "author": "Tim Perry <tim@httptoolkit.tech>",
+  "license": "Apache-2.0",
+  "config": {
+    "forge": {
+      "make_targets": {
+        "win32": [
+          "squirrel"
+        ],
+        "darwin": [
+          "zip"
+        ],
+        "linux": [
+          "deb",
+          "rpm"
+        ]
+      },
+      "electronPackagerConfig": {
+        "packageManager": "npm"
+      },
+      "electronWinstallerConfig": {
+        "name": "httptoolkit"
+      },
+      "electronInstallerDebian": {},
+      "electronInstallerRedhat": {},
+      "github_repository": {
+        "owner": "httptoolkit",
+        "name": "httptoolkit-desktop"
+      },
+      "windowsStoreConfig": {
+        "packageName": "",
+        "name": "httptoolkit"
+      }
+    }
+  },
+  "dependencies": {
+    "@types/electron-devtools-installer": "^2.0.2",
+    "@types/react": "^0.14.55",
+    "@types/react-dom": "^0.14.20",
+    "electron-compile": "^6.4.3",
+    "electron-devtools-installer": "^2.1.0",
+    "electron-squirrel-startup": "^1.0.0",
+    "react": "^15.4.1",
+    "react-dom": "^15.4.1",
+    "react-hot-loader": "^3.0.0-beta.6",
+    "tslib": "^1.4.0"
+  },
+  "devDependencies": {
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react": "^6.24.1",
+    "electron-forge": "^5.2.3",
+    "electron-prebuilt-compile": "3.0.10",
+    "tslint": "^5.1.0",
+    "typescript": "~2.2.2"
+  }
+}
