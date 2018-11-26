@@ -8,8 +8,8 @@ let mainWindow: Electron.BrowserWindow | null = null;
 
 const createWindow = async () => {
     mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
+        width: 1366,
+        height: 768,
         webPreferences: {
             contextIsolation: true,
             nodeIntegration: false
