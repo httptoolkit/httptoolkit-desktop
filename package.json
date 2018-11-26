@@ -3,8 +3,7 @@
   "productName": "HTTP Toolkit",
   "version": "0.0.1",
   "private": true,
-  "description": "Electron wrapper to build and distribute HTTP Toolkit for the desktop",
-  "productDescription": "HTTP(S) debugging proxy, analyzer & client",
+  "description": "HTTP(S) debugging proxy, analyzer & client",
   "main": "src/index.ts",
   "scripts": {
     "start": "electron-forge start",
@@ -21,26 +20,25 @@
       "make_targets": {
         "win32": ["squirrel"],
         "darwin": ["dmg"],
-        "linux": ["deb", "rpm"]
+        "linux": ["deb", "zip"]
       },
       "electronPackagerConfig": {
         "packageManager": "npm",
         "icon": "./src/icon"
       },
       "electronWinstallerConfig": {
-        "exe": "httptoolkit.exe",
-        "description": "HTTP(S) debugging proxy, analyzer & client"
+        "exe": "httptoolkit.exe"
       },
       "electronInstallerDMG": {
         "name": "HTTP Toolkit",
         "icon": "src/icon.icns"
       },
       "electronInstallerDebian": {
+        "name": "httptoolkit",
+        "bin": "HTTP Toolkit",
         "icon": "src/icon.png",
-        "homepage": "https://httptoolkit.tech"
-      },
-      "electronInstallerRedhat": {
-        "icon": "src/icon.png"
+        "homepage": "https://httptoolkit.tech",
+        "categories": ["Development", "Network"]
       },
       "github_repository": {
         "owner": "httptoolkit",
