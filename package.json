@@ -10,8 +10,7 @@
     "start:dev": "APP_URL='http://localhost:8080' electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
-    "publish": "electron-forge publish",
-    "lint": "tslint --project tsconfig.json --type-check --force"
+    "publish": "electron-forge publish"
   },
   "keywords": [],
   "author": "Tim Perry <tim@httptoolkit.tech>",

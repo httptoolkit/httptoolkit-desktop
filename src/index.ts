@@ -1,7 +1,6 @@
 import * as path from 'path';
 import { app, BrowserWindow, shell } from 'electron';
 
-// tslint:disable-next-line:no-var-requires
 const packageJson = require('../package.json');
 
 const APP_URL = process.env.APP_URL || 'https://app.httptoolkit.tech';
