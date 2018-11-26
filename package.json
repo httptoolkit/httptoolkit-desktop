@@ -3,7 +3,7 @@
   "productName": "HTTP Toolkit",
   "version": "0.0.1",
   "private": true,
-  "description": "HTTP(S) debugging proxy, analyzer & client",
+  "description": "HTTP(S) debugging proxy, analyzer and client",
   "main": "src/index.ts",
   "scripts": {
     "start": "electron-forge start",
@@ -13,7 +13,7 @@
     "publish": "electron-forge publish"
   },
   "keywords": [],
-  "author": "Tim Perry <tim@httptoolkit.tech>",
+  "author": "Tim Perry",
   "license": "Apache-2.0",
   "config": {
     "forge": {
@@ -23,11 +23,16 @@
         "linux": ["deb", "zip"]
       },
       "electronPackagerConfig": {
+        "executableName": "httptoolkit",
         "packageManager": "npm",
         "icon": "./src/icon"
       },
       "electronWinstallerConfig": {
-        "exe": "httptoolkit.exe"
+        "name": "httptoolkit",
+        "title": "HTTP Toolkit",
+        "exe": "httptoolkit.exe",
+        "iconUrl": "https://httptoolkit.tech/favicon.ico",
+        "setupIcon": "./src/icon.ico"
       },
       "electronInstallerDMG": {
         "name": "HTTP Toolkit",
