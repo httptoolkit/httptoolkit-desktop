@@ -1,0 +1,14 @@
+language: node_js
+node_js: '10'
+os:
+- linux
+- osx
+- windows
+script:
+- npm run make
+deploy:
+- provider: 'script'
+  script: npm run publish
+  skip_cleanup: true
+  on:
+    tags: true
