@@ -20,7 +20,13 @@ export = async function (buildPath: string, _electronVersion: string, platform: 
 
         const serverVersion = new RegExp(`httptoolkit-server-v\\d+\\.\\d+\\.\\d+-${platform}-${arch}.tar.gz`);
 
-        const response = await fetch('https://api.github.com/repos/httptoolkit/httptoolkit-server/releases/latest');
+        const headers = process.env.GITHUB_TOKEN ? { Authorization: `token ${process.env.GITHUB_TOKEN}` } : {}
+
+        const response = await fetch(
+            'https://api.github.com/repos/httptoolkit/httptoolkit-server/releases/latest',
+            { headers }
+        );
+
         const release = await response.json();
         if (!release || !release.assets) {
             console.error(JSON.stringify(release, null, 2));
