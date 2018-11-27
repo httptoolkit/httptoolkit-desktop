@@ -33,8 +33,6 @@ const createWindow = async () => {
     });
 };
 
-app.on('ready', createWindow);
-
 app.on('window-all-closed', () => {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
@@ -81,3 +79,11 @@ app.on('web-contents-created', (_event, contents) => {
         }
     });
 });
+
+if (require('electron-squirrel-startup')) {
+    // We've been opened as part of a Windows install.
+    // squirrel-startup handles all the hard work, we just need to not do anything.
+    app.quit();
+} else {
+    app.on('ready', createWindow);
+}
