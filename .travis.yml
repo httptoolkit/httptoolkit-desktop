@@ -22,8 +22,11 @@ script:
 - npm run make
 
 deploy:
-- provider: 'script'
-  script: npm run publish
+- provider: releases
+  api_key: $GITHUB_TOKEN
+  file_glob: true
+  file: out/make/*.{zip,deb,dmg}
   skip_cleanup: true
   on:
+    repo: httptoolkit/httptoolkit-desktop
     tags: true
