@@ -18,8 +18,8 @@
   "config": {
     "forge": {
       "make_targets": {
-        "win32": ["squirrel"],
-        "darwin": ["dmg"],
+        "win32": ["squirrel", "zip"],
+        "darwin": ["dmg", "zip"],
         "linux": ["deb", "zip"]
       },
       "electronPackagerConfig": {
