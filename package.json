@@ -18,9 +18,18 @@
   "config": {
     "forge": {
       "make_targets": {
-        "win32": ["squirrel", "zip"],
-        "darwin": ["dmg", "zip"],
-        "linux": ["deb", "zip"]
+        "win32": [
+          "squirrel",
+          "zip"
+        ],
+        "darwin": [
+          "dmg",
+          "zip"
+        ],
+        "linux": [
+          "deb",
+          "zip"
+        ]
       },
       "electronPackagerConfig": {
         "executableName": "httptoolkit",
@@ -43,7 +52,10 @@
         "bin": "HTTP Toolkit",
         "icon": "src/icon.png",
         "homepage": "https://httptoolkit.tech",
-        "categories": ["Development", "Network"]
+        "categories": [
+          "Development",
+          "Network"
+        ]
       },
       "github_repository": {
         "owner": "httptoolkit",
