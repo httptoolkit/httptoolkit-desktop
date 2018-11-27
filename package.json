@@ -53,7 +53,7 @@
       },
       "electronInstallerDebian": {
         "name": "httptoolkit",
-        "bin": "HTTP Toolkit",
+        "bin": "httptoolkit",
         "icon": "src/icon.png",
         "homepage": "https://httptoolkit.tech",
         "categories": [
