@@ -6,6 +6,7 @@
   "description": "HTTP(S) debugging proxy, analyzer and client",
   "main": "src/index.ts",
   "scripts": {
+    "prestart": "node setup-dev.js",
     "start": "electron-forge start",
     "start:dev": "APP_URL='http://localhost:8080' electron-forge start",
     "package": "electron-forge package",
@@ -34,7 +35,10 @@
       "electronPackagerConfig": {
         "executableName": "httptoolkit",
         "packageManager": "npm",
-        "icon": "./src/icon"
+        "icon": "./src/icon",
+        "afterCopy": [
+          "./src/after-copy.js"
+        ]
       },
       "electronWinstallerConfig": {
         "name": "httptoolkit",
@@ -76,12 +80,17 @@
     "tslib": "^1.4.0"
   },
   "devDependencies": {
+    "@types/node": "^10.12.10",
+    "@types/node-fetch": "^2.1.4",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
     "electron": "^3.0.10",
     "electron-forge": "^5.2.3",
     "electron-prebuilt-compile": "3.0.10",
+    "node-fetch": "^2.3.0",
+    "targz": "^1.0.1",
+    "ts-node": "^7.0.1",
     "tslint": "^5.1.0",
     "typescript": "~2.2.2"
   }

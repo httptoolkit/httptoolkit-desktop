@@ -1,7 +1,11 @@
+import { spawn, ChildProcess } from 'child_process';
+import * as os from 'os';
 import * as path from 'path';
 import { app, BrowserWindow, shell } from 'electron';
 
 const packageJson = require('../package.json');
+
+const isWindows = os.platform() === 'win32';
 
 const APP_URL = process.env.APP_URL || 'https://app.httptoolkit.tech';
 
@@ -9,7 +13,9 @@ const APP_URL = process.env.APP_URL || 'https://app.httptoolkit.tech';
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow: Electron.BrowserWindow | null = null;
 
-const createWindow = async () => {
+let server: ChildProcess | null = null;
+
+const createWindow = () => {
     mainWindow = new BrowserWindow({
         title: 'HTTP Toolkit',
         icon: path.join(__dirname, 'src', 'icon.png'),
@@ -38,6 +44,17 @@ app.on('window-all-closed', () => {
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
         app.quit();
+    }
+});
+
+app.on('quit', () => {
+    if (server) {
+        if (!isWindows) {
+            // On windows, children die automatically.
+            // Elsewhere, we have to make sure we clean up the whole group.
+            // https://azimi.me/2014/12/31/kill-child_process-node-js.html
+            process.kill(-server.pid);
+        }
     }
 });
 
@@ -80,10 +97,36 @@ app.on('web-contents-created', (_event, contents) => {
     });
 });
 
+async function startServer() {
+    const binName = isWindows ? 'httptoolkit-server.cmd' : 'httptoolkit-server';
+    const serverBinPath = path.join(__dirname, '..', 'httptoolkit-server', 'bin', binName);
+
+    server = spawn(serverBinPath, ['start'], {
+        windowsHide: true,
+        stdio: 'inherit',
+        shell: isWindows,
+        detached: !isWindows
+    });
+
+    const serverShutdown = new Promise((_resolve, reject) => {
+        // The server should never shutdown unless the whole process is finished.
+        server!.on('close', reject);
+    });
+
+    // Wait briefly, so we can fail hard if the server doesn't start somehow.
+    return Promise.race([
+        serverShutdown,
+        new Promise((resolve) => setTimeout(resolve, 500))
+    ]);
+}
+
 if (require('electron-squirrel-startup')) {
     // We've been opened as part of a Windows install.
     // squirrel-startup handles all the hard work, we just need to not do anything.
     app.quit();
 } else {
-    app.on('ready', createWindow);
+    Promise.all([
+        startServer(),
+        new Promise((resolve) => app.on('ready', resolve))
+    ]).then(() => createWindow());
 }
