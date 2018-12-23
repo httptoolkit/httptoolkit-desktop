@@ -1,3 +1,5 @@
 node_modules
 out
 httptoolkit-server/
+appveyor-tools/
+encrypted-win-certificate.pfx

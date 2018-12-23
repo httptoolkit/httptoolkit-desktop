@@ -45,7 +45,8 @@
         "title": "HTTP Toolkit",
         "exe": "httptoolkit.exe",
         "iconUrl": "https://httptoolkit.tech/favicon.ico",
-        "setupIcon": "./src/icon.ico"
+        "setupIcon": "./src/icon.ico",
+        "certificateFile": "./encrypted-win-certificate.pfx"
       },
       "electronInstallerDMG": {
         "name": "HTTP Toolkit",
