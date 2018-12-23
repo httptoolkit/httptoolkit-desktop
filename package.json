@@ -36,6 +36,9 @@
         "executableName": "httptoolkit",
         "packageManager": "npm",
         "icon": "./src/icon",
+        "ignore": [
+          "certificates"
+        ],
         "afterCopy": [
           "./src/after-copy.js"
         ]
@@ -46,7 +49,7 @@
         "exe": "httptoolkit.exe",
         "iconUrl": "https://httptoolkit.tech/favicon.ico",
         "setupIcon": "./src/icon.ico",
-        "certificateFile": "./encrypted-win-certificate.pfx"
+        "certificateFile": "./certificates/encrypted-win-cert.pfx"
       },
       "electronInstallerDMG": {
         "name": "HTTP Toolkit",
