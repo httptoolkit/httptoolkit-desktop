@@ -41,7 +41,12 @@
         ],
         "afterCopy": [
           "./src/after-copy.js"
-        ]
+        ],
+        "appBundleId": "tech.httptoolkit.desktop",
+        "appCategoryType": "public.app-category.developer-tools",
+        "osxSign": {
+          "keychain": "httptoolkit-build.keychain"
+        }
       },
       "electronWinstallerConfig": {
         "name": "httptoolkit",
