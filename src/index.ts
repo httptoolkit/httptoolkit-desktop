@@ -53,7 +53,9 @@ app.on('quit', () => {
             // On windows, children die automatically.
             // Elsewhere, we have to make sure we clean up the whole group.
             // https://azimi.me/2014/12/31/kill-child_process-node-js.html
-            process.kill(-server.pid);
+            try {
+                process.kill(-server.pid);
+            } catch (e) { }
         }
     }
 });
