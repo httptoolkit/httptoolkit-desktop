@@ -9,6 +9,10 @@ cache:
 - '%USERPROFILE%\.electron'
 - node_modules
 
+artifacts:
+  - path: ./out
+    name: Output
+
 branches:
   only:
   - master
