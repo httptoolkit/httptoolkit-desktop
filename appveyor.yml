@@ -3,6 +3,12 @@ platform:
 
 environment:
   nodejs_version: "10"
+  # Github token, used to pull the latest httptoolkit-server release
+  GITHUB_TOKEN: PASSWORD
+  # Password to decrypt the cert pfx (set in CI config)
+  CERTIFICATE_FILE_KEY: PASSWORD
+  # Password to use the code signing cert (set in CI config)
+  ELECTRON_FORGE_ELECTRON_WINSTALLER_CONFIG_CERTIFICATE_PASSWORD: PASSWORD
 
 cache:
 - '%APPDATA%\npm-cache'
@@ -20,6 +26,7 @@ branches:
 
 install:
 - ps: iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1'))
+# Decrypt the raw cert - arguably unnecessary (cert has its own key), but nice to have since it's committed & public
 - cmd: appveyor-tools\secure-file -decrypt certificates/encrypted-win-cert.pfx.enc -secret %CERTIFICATE_FILE_KEY%
 - ps: Install-Product node $env:nodejs_version $env:platform
 - set PATH=%APPDATA%\npm;%PATH%
