@@ -17,66 +17,7 @@
   "author": "Tim Perry",
   "license": "Apache-2.0",
   "config": {
-    "forge": {
-      "make_targets": {
-        "win32": [
-          "squirrel",
-          "zip"
-        ],
-        "darwin": [
-          "dmg",
-          "zip"
-        ],
-        "linux": [
-          "deb",
-          "zip"
-        ]
-      },
-      "electronPackagerConfig": {
-        "executableName": "httptoolkit",
-        "packageManager": "npm",
-        "icon": "./src/icon",
-        "ignore": [
-          "certificates"
-        ],
-        "afterCopy": [
-          "./src/after-copy.js"
-        ],
-        "appBundleId": "tech.httptoolkit.desktop",
-        "appCategoryType": "public.app-category.developer-tools",
-        "osxSign": {
-          "keychain": "httptoolkit-build.keychain"
-        }
-      },
-      "electronWinstallerConfig": {
-        "name": "httptoolkit",
-        "title": "HTTP Toolkit",
-        "exe": "httptoolkit.exe",
-        "iconUrl": "https://httptoolkit.tech/favicon.ico",
-        "setupIcon": "./src/icon.ico",
-        "loadingGif": "./src/installing.gif",
-        "certificateFile": "./certificates/encrypted-win-cert.pfx",
-        "certificatePassword": "password"
-      },
-      "electronInstallerDMG": {
-        "name": "HTTP Toolkit",
-        "icon": "src/icon.icns"
-      },
-      "electronInstallerDebian": {
-        "name": "httptoolkit",
-        "bin": "httptoolkit",
-        "icon": "src/icon.png",
-        "homepage": "https://httptoolkit.tech",
-        "categories": [
-          "Development",
-          "Network"
-        ]
-      },
-      "github_repository": {
-        "owner": "httptoolkit",
-        "name": "httptoolkit-desktop"
-      }
-    }
+    "forge": "./electron-forge.config.js"
   },
   "dependencies": {
     "electron-compile": "^6.4.4",
