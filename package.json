@@ -55,7 +55,8 @@
         "iconUrl": "https://httptoolkit.tech/favicon.ico",
         "setupIcon": "./src/icon.ico",
         "loadingGif": "./src/installing.gif",
-        "certificateFile": "./certificates/encrypted-win-cert.pfx"
+        "certificateFile": "./certificates/encrypted-win-cert.pfx",
+        "certificatePassword": "password"
       },
       "electronInstallerDMG": {
         "name": "HTTP Toolkit",
