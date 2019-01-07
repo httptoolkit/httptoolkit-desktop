@@ -3,7 +3,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { app, BrowserWindow, shell, Menu } from 'electron';
 
-import * as registerContextMenu from 'electron-context-menu';
+import registerContextMenu = require('electron-context-menu');
 registerContextMenu({
     showSaveImageAs: true
 });

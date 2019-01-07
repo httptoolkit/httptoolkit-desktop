@@ -1,22 +1,16 @@
-import { app, Menu } from 'electron';
+import { app, Menu, MenuItemConstructorOptions } from 'electron';
 
-const template = [
-    {
-        label: '&File',
-        submenu: [
-            { role: 'quit' }
-        ]
-    },
+const menuTemplate: MenuItemConstructorOptions[] = [
     {
         label: '&Edit',
         submenu: [
             { role: 'undo' },
             { role: 'redo' },
             { type: 'separator' },
-            { role: 'cut' },
-            { role: 'copy' },
-            { role: 'paste' },
-            { role: 'pasteandmatchstyle' },
+            { role: 'cut', registerAccelerator: false },
+            { role: 'copy', registerAccelerator: false },
+            { role: 'paste', registerAccelerator: false },
+            { role: 'pasteandmatchstyle', registerAccelerator: false },
             { role: 'delete' },
             { role: 'selectall' }
         ]
@@ -53,10 +47,10 @@ const template = [
             }
         ]
     }
-]
+];
 
 if (process.platform === 'darwin') {
-    template.unshift({
+    menuTemplate.unshift({
         label: app.getName(),
         submenu: [
             { role: 'about' },
@@ -69,10 +63,10 @@ if (process.platform === 'darwin') {
             { type: 'separator' },
             { role: 'quit' }
         ]
-    })
+    });
 
     // Edit menu
-    template[1].submenu.push(
+    (menuTemplate[1].submenu as MenuItemConstructorOptions[]).push(
         { type: 'separator' },
         {
             label: 'Speech',
@@ -81,16 +75,47 @@ if (process.platform === 'darwin') {
                 { role: 'stopspeaking' }
             ]
         }
-    )
+    );
 
     // Window menu
-    template[3].submenu = [
+    menuTemplate[3].submenu = [
         { role: 'close' },
         { role: 'minimize' },
         { role: 'zoom' },
         { type: 'separator' },
         { role: 'front' }
-    ]
+    ];
+} else {
+    menuTemplate.unshift({
+        label: '&File',
+        submenu: [
+            { role: 'quit' }
+        ]
+    });
 }
 
-export const menu = Menu.buildFromTemplate(template)
+// Mutate menu templates to fix https://github.com/electron/electron/issues/16303
+// by forcibly defaulting registerAccelerator to true on role menu items.
+function fixAccelerators(menuTemplates: MenuItemConstructorOptions[]): MenuItemConstructorOptions[] {
+    return menuTemplates.map((template) => {
+        if (template.role && !template.hasOwnProperty('registerAccelerator')) {
+            template.registerAccelerator = true;
+        }
+
+        const { submenu } = template;
+
+        if (submenu) {
+            if (Array.isArray(submenu)) {
+                template.submenu = fixAccelerators(submenu);
+            } else {
+                template.submenu = fixAccelerators([submenu]);
+            }
+        }
+
+        return template;
+    });
+}
+
+export const menu = Menu.buildFromTemplate(
+    fixAccelerators(menuTemplate)
+);
