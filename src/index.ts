@@ -3,6 +3,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { app, BrowserWindow, shell, Menu } from 'electron';
 
+import * as windowStateKeeper from 'electron-window-state';
+
 import registerContextMenu = require('electron-context-menu');
 registerContextMenu({
     showSaveImageAs: true
@@ -26,15 +28,24 @@ app.commandLine.appendSwitch('ignore-connections-limit', 'app.httptoolkit.tech')
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
 
 const createWindow = () => {
+    // Load the previous window state, falling back to defaults
+    let mainWindowState = windowStateKeeper({
+        defaultWidth: 1366,
+        defaultHeight: 768
+    });
+
     mainWindow = new BrowserWindow({
         title: 'HTTP Toolkit',
         icon: path.join(__dirname, 'src', 'icon.png'),
         backgroundColor: '#d8e2e6',
 
-        width: 1366,
-        height: 768,
         minWidth: 1024,
         minHeight: 700,
+
+        x: mainWindowState.x,
+        y: mainWindowState.y,
+        width: mainWindowState.width,
+        height: mainWindowState.height,
 
         webPreferences: {
             contextIsolation: true,
@@ -43,6 +54,8 @@ const createWindow = () => {
 
         show: false
     });
+
+    mainWindowState.manage(mainWindow);
 
     mainWindow.loadURL(APP_URL);
 
