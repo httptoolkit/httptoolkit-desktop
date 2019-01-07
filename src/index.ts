@@ -20,6 +20,9 @@ let mainWindow: Electron.BrowserWindow | null = null;
 
 let server: ChildProcess | null = null;
 
+app.commandLine.appendSwitch('ignore-connections-limit', 'app.httptoolkit.tech');
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+
 const createWindow = () => {
     mainWindow = new BrowserWindow({
         title: 'HTTP Toolkit',
