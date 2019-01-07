@@ -1,12 +1,14 @@
 import { spawn, ChildProcess } from 'child_process';
 import * as os from 'os';
 import * as path from 'path';
-import { app, BrowserWindow, shell } from 'electron';
+import { app, BrowserWindow, shell, Menu } from 'electron';
 
 import * as registerContextMenu from 'electron-context-menu';
 registerContextMenu({
     showSaveImageAs: true
 });
+
+import { menu } from './menu';
 
 const packageJson = require('../package.json');
 
@@ -53,6 +55,10 @@ const createWindow = () => {
         mainWindow = null;
     });
 };
+
+app.on('ready', () => {
+    Menu.setApplicationMenu(menu);
+});
 
 app.on('window-all-closed', () => {
     // On OS X it is common for applications and their menu bar
