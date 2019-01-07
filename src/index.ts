@@ -29,10 +29,17 @@ const createWindow = () => {
         webPreferences: {
             contextIsolation: true,
             nodeIntegration: false
-        }
+        },
+
+        show: false
     });
 
     mainWindow.loadURL(APP_URL);
+
+    mainWindow.on('ready-to-show', function() {
+        mainWindow!.show();
+        mainWindow!.focus();
+    });
 
     mainWindow.on('closed', () => {
         mainWindow = null;
