@@ -3,6 +3,11 @@ import * as os from 'os';
 import * as path from 'path';
 import { app, BrowserWindow, shell } from 'electron';
 
+import * as registerContextMenu from 'electron-context-menu';
+registerContextMenu({
+    showSaveImageAs: true
+});
+
 const packageJson = require('../package.json');
 
 const isWindows = os.platform() === 'win32';
