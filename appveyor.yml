@@ -16,7 +16,7 @@ cache:
 - node_modules
 
 artifacts:
-  - path: ./out
+  - path: ./out/make
     name: Output
 
 branches:
