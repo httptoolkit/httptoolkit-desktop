@@ -1,3 +1,14 @@
+import * as Sentry from '@sentry/electron';
+Sentry.init({ dsn: 'https://1194b128453942ed9470d49a74c35992@sentry.io/1367048' });
+
+function reportError(error: Error | string) {
+    if (typeof error === 'string') {
+        Sentry.captureMessage(error);
+    } else {
+        Sentry.captureException(error);
+    }
+}
+
 import { spawn, ChildProcess } from 'child_process';
 import * as os from 'os';
 import * as path from 'path';
@@ -81,15 +92,17 @@ app.on('window-all-closed', () => {
     }
 });
 
+let serverKilled = false;
 app.on('quit', () => {
-    if (server) {
-        if (!isWindows) {
-            // On windows, children die automatically.
-            // Elsewhere, we have to make sure we clean up the whole group.
-            // https://azimi.me/2014/12/31/kill-child_process-node-js.html
-            try {
-                process.kill(-server.pid);
-            } catch (e) { }
+    if (server && !isWindows) {
+        // On windows, children die automatically.
+        // Elsewhere, we have to make sure we clean up the whole group.
+        // https://azimi.me/2014/12/31/kill-child_process-node-js.html
+        try {
+            serverKilled = true;
+            process.kill(-server.pid);
+        } catch (e) {
+            console.log(e);
         }
     }
 });
@@ -133,27 +146,51 @@ app.on('web-contents-created', (_event, contents) => {
     });
 });
 
-async function startServer() {
+async function startServer(retries = 2) {
     const binName = isWindows ? 'httptoolkit-server.cmd' : 'httptoolkit-server';
     const serverBinPath = path.join(__dirname, '..', 'httptoolkit-server', 'bin', binName);
 
     server = spawn(serverBinPath, ['start'], {
         windowsHide: true,
-        stdio: 'inherit',
+        stdio: ['inherit', 'pipe', 'pipe'],
         shell: isWindows,
         detached: !isWindows
     });
 
-    const serverShutdown = new Promise((_resolve, reject) => {
-        // The server should never shutdown unless the whole process is finished.
-        server!.on('close', reject);
+    server.stdout.pipe(process.stdout);
+    server.stderr.pipe(process.stderr);
+
+    server.stdout.on('data', (data) => {
+        Sentry.addBreadcrumb({ category: 'server-stdout', message: data.toString('utf8'), level: <any> 'info' });
     });
 
-    // Wait briefly, so we can fail hard if the server doesn't start somehow.
-    return Promise.race([
-        serverShutdown,
-        new Promise((resolve) => setTimeout(resolve, 500))
-    ]);
+    server.stderr.on('data', (data) => {
+        Sentry.addBreadcrumb({ category: 'server-stderr', message: data.toString('utf8'), level: <any> 'warning' });
+    });
+
+    const serverShutdown: Promise<void> = new Promise<Error | number | null>((resolve) => {
+        server!.once('error', resolve);
+        server!.once('exit', resolve);
+    }).then((errorOrCode) => {
+        if (serverKilled) return;
+
+        // The server should never shutdown unless the whole process is finished, so this is bad.
+
+        const error = errorOrCode && typeof errorOrCode !== 'number' ?
+            errorOrCode : new Error(`Server shutdown unexpectedly with code ${errorOrCode}.`);
+
+        if (retries > 0) {
+            Sentry.addBreadcrumb({ category: 'server-exit', message: error.message, level: <any> 'error' });
+
+            // This will break the app, so refresh it
+            if (mainWindow) mainWindow.reload();
+            return startServer(retries - 1);
+        }
+
+        throw error;
+    });
+
+    return serverShutdown;
 }
 
 if (require('electron-squirrel-startup')) {
@@ -161,8 +198,14 @@ if (require('electron-squirrel-startup')) {
     // squirrel-startup handles all the hard work, we just need to not do anything.
     app.quit();
 } else {
-    Promise.all([
-        startServer(),
-        new Promise((resolve) => app.on('ready', resolve))
-    ]).then(() => createWindow());
+    startServer().catch((err) => {
+        reportError(err);
+        console.error('Failed to start server, exiting.', err);
+
+        // Hide immediately, shutdown entirely after a brief pause for Sentry
+        if (mainWindow) mainWindow.hide();
+        setTimeout(() => process.exit(1), 500);
+    });
+
+    app.on('ready', () => createWindow());
 }

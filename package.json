@@ -20,6 +20,7 @@
     "forge": "./electron-forge.config.js"
   },
   "dependencies": {
+    "@sentry/electron": "^0.14.0",
     "electron-compile": "^6.4.4",
     "electron-context-menu": "^0.10.1",
     "electron-squirrel-startup": "^1.0.0",
