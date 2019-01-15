@@ -170,8 +170,9 @@ async function startServer(retries = 2) {
     server = spawn(serverBinPath, ['start'], {
         windowsHide: true,
         stdio: ['inherit', 'pipe', 'pipe'],
-        shell: isWindows,
-        detached: !isWindows
+        shell: isWindows, // Required to spawn a .cmd script
+        windowsVerbatimArguments: false, // Fixes quoting in windows shells
+        detached: !isWindows // Detach on Linux, so we can cleanly kill as a group
     });
 
     server.stdout.pipe(process.stdout);
