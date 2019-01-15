@@ -9,7 +9,7 @@ function reportError(error: Error | string) {
     }
 }
 
-import { spawn, ChildProcess } from 'child_process';
+import { spawn, exec, ChildProcess } from 'child_process';
 import * as os from 'os';
 import * as path from 'path';
 import { app, BrowserWindow, shell, Menu } from 'electron';
@@ -93,16 +93,33 @@ app.on('window-all-closed', () => {
 });
 
 let serverKilled = false;
-app.on('quit', () => {
-    if (server && !isWindows) {
-        // On windows, children die automatically.
-        // Elsewhere, we have to make sure we clean up the whole group.
-        // https://azimi.me/2014/12/31/kill-child_process-node-js.html
+app.on('will-quit', (event) => {
+    if (server && !serverKilled) {
+        serverKilled = true;
         try {
-            serverKilled = true;
-            process.kill(-server.pid);
-        } catch (e) {
-            console.log(e);
+            if (isWindows) {
+                // Don't shutdown until we've tried to kill the server
+                event.preventDefault();
+
+                // Forcefully kill the pid (the cmd) and child processes
+                exec(`taskkill /pid ${server.pid} /T /F`, (error, stdout, stderr) => {
+                    if (error) {
+                        console.log(stdout);
+                        console.log(stderr);
+                        reportError(error);
+                    }
+
+                    // We've done our best - now shut down for real
+                    app.quit();
+                });
+            } else {
+                // Make sure we clean up the whole group (shell + node).
+                // https://azimi.me/2014/12/31/kill-child_process-node-js.html
+                process.kill(-server.pid);
+            }
+        } catch (error) {
+            console.log('Failed to kill server', error);
+            reportError(error);
         }
     }
 });
