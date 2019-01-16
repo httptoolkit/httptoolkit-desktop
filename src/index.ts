@@ -13,7 +13,7 @@ function reportError(error: Error | string) {
 import { spawn, exec, ChildProcess } from 'child_process';
 import * as os from 'os';
 import * as path from 'path';
-import { app, BrowserWindow, shell, Menu } from 'electron';
+import { app, BrowserWindow, shell, Menu, Notification } from 'electron';
 
 import * as windowStateKeeper from 'electron-window-state';
 
@@ -165,6 +165,11 @@ app.on('web-contents-created', (_event, contents) => {
     });
 });
 
+function showNotification(title: string, body: string) {
+    const notification = new Notification({ title, body, icon: path.join(__dirname, 'src', 'icon.png') });
+    notification.show();
+}
+
 async function startServer(retries = 2) {
     const binName = isWindows ? 'httptoolkit-server.cmd' : 'httptoolkit-server';
     const serverBinPath = path.join(__dirname, '..', 'httptoolkit-server', 'bin', binName);
@@ -184,9 +189,19 @@ async function startServer(retries = 2) {
         Sentry.addBreadcrumb({ category: 'server-stdout', message: data.toString('utf8'), level: <any> 'info' });
     });
 
+    let lastError: string | undefined = undefined;
     server.stderr.on('data', (data) => {
-        Sentry.addBreadcrumb({ category: 'server-stderr', message: data.toString('utf8'), level: <any> 'warning' });
+        const errorOutput = data.toString('utf8');
+        Sentry.addBreadcrumb({ category: 'server-stderr', message: errorOutput, level: <any> 'warning' });
+
+        // Remember the last '*Error:' line we saw.
+        lastError = errorOutput
+            .split('\n')
+            .filter((line: string) => line.match(/^\w*Error:/))
+            .slice(-1)[0];
     });
+
+    const serverStartTime = Date.now();
 
     const serverShutdown: Promise<void> = new Promise<Error | number | null>((resolve) => {
         server!.once('error', resolve);
@@ -195,18 +210,34 @@ async function startServer(retries = 2) {
         if (serverKilled) return;
 
         // The server should never shutdown unless the whole process is finished, so this is bad.
+        const serverRunTime = Date.now() - serverStartTime;
 
-        const error = errorOrCode && typeof errorOrCode !== 'number' ?
-            errorOrCode : new Error(`Server shutdown unexpectedly with code ${errorOrCode}.`);
+        let error: Error;
 
-        if (retries > 0) {
-            Sentry.addBreadcrumb({ category: 'server-exit', message: error.message, level: <any> 'error' });
+        if (errorOrCode && typeof errorOrCode !== 'number') {
+            error = errorOrCode;
+        } else if (lastError) {
+            error = new Error(`Server crashed with '${lastError}' (${errorOrCode})`);
+        } else {
+            error = new Error(`Server shutdown unexpectedly with code ${errorOrCode}`);
+        }
 
+        Sentry.addBreadcrumb({ category: 'server-exit', message: error.message, level: <any> 'error', data: { serverRunTime } });
+        reportError(error);
+
+        showNotification(
+            'HTTP Toolkit crashed',
+            `${error.message}. Please file an issue at github.com/httptoolkit/feedback.`
+        );
+
+        // Retry limited times, but not for near-immediate failures.
+        if (retries > 0 && serverRunTime > 5000) {
             // This will break the app, so refresh it
             if (mainWindow) mainWindow.reload();
             return startServer(retries - 1);
         }
 
+        // If we've run out of retries, throw (kill the app entirely)
         throw error;
     });
 
@@ -223,7 +254,6 @@ if (require('electron-squirrel-startup')) {
     setTimeout(() => app.quit(), 500);
 } else {
     startServer().catch((err) => {
-        reportError(err);
         console.error('Failed to start server, exiting.', err);
 
         // Hide immediately, shutdown entirely after a brief pause for Sentry
