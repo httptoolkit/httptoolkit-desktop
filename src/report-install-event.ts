@@ -15,15 +15,15 @@ export function reportStartupEvents() {
 
         // Report installer install/update/uninstall events
         if (cmd === '--squirrel-install') {
-            analytics.event("Setup", "Install").send();
+            analytics.event('Setup', 'Install').send();
         } else if (cmd === '--squirrel-updated') {
-            analytics.event("Setup", "Update").send();
+            analytics.event('Setup', 'Update').send();
         } else if (cmd === '--squirrel-uninstall') {
-            analytics.event("Setup", "Uninstall").send();
+            analytics.event('Setup', 'Uninstall').send();
         }
     }
 
     if (isFirstRun()) {
-        analytics.event("Setup", "First run").send();
+        analytics.event('Setup', 'First run', process.platform).send();
     }
 }

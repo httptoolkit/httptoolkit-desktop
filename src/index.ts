@@ -218,7 +218,9 @@ reportStartupEvents();
 if (require('electron-squirrel-startup')) {
     // We've been opened as part of a Windows install.
     // squirrel-startup handles all the hard work, we just need to not do anything.
-    app.quit();
+
+    // Brief delay before quitting, so our analytics register
+    setTimeout(() => app.quit(), 500);
 } else {
     startServer().catch((err) => {
         reportError(err);
