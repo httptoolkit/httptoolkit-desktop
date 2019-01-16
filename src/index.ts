@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/electron';
+
 Sentry.init({ dsn: 'https://1194b128453942ed9470d49a74c35992@sentry.io/1367048' });
 
 function reportError(error: Error | string) {
@@ -21,6 +22,7 @@ registerContextMenu({
     showSaveImageAs: true
 });
 
+import { reportStartupEvents } from './report-install-event';
 import { menu } from './menu';
 
 const packageJson = require('../package.json');
@@ -210,6 +212,8 @@ async function startServer(retries = 2) {
 
     return serverShutdown;
 }
+
+reportStartupEvents();
 
 if (require('electron-squirrel-startup')) {
     // We've been opened as part of a Windows install.
