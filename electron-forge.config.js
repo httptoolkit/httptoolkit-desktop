@@ -57,7 +57,8 @@ module.exports = {
     },
     "electronInstallerDMG": {
         "name": "HTTP Toolkit",
-        "icon": "src/icon.icns"
+        "icon": "src/icon.icns",
+        "background": "src/dmg-background.png"
     },
     "electronInstallerDebian": {
         "name": "httptoolkit",
