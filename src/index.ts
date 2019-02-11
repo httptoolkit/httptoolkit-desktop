@@ -72,7 +72,7 @@ const createWindow = () => {
 
     mainWindow.loadURL(APP_URL);
 
-    mainWindow.on('ready-to-show', function() {
+    mainWindow.on('ready-to-show', function () {
         mainWindow!.show();
         mainWindow!.focus();
     });
@@ -147,20 +147,20 @@ app.on('web-contents-created', (_event, contents) => {
 
     // Redirect all navigations & new windows to the system browser
     contents.on('will-navigate', (event, navigationUrl) => {
-      const parsedUrl = new URL(navigationUrl);
+        const parsedUrl = new URL(navigationUrl);
 
-      if (parsedUrl.origin !== APP_URL) {
-        event.preventDefault();
-        shell.openExternal(navigationUrl);
-      }
+        if (parsedUrl.origin !== APP_URL) {
+            event.preventDefault();
+            shell.openExternal(navigationUrl);
+        }
     });
 
     contents.on('new-window', (event, navigationUrl) => {
         const parsedUrl = new URL(navigationUrl);
 
         if (parsedUrl.origin !== APP_URL) {
-          event.preventDefault();
-          shell.openExternal(navigationUrl);
+            event.preventDefault();
+            shell.openExternal(navigationUrl);
         }
     });
 });
@@ -186,13 +186,13 @@ async function startServer(retries = 2) {
     server.stderr.pipe(process.stderr);
 
     server.stdout.on('data', (data) => {
-        Sentry.addBreadcrumb({ category: 'server-stdout', message: data.toString('utf8'), level: <any> 'info' });
+        Sentry.addBreadcrumb({ category: 'server-stdout', message: data.toString('utf8'), level: <any>'info' });
     });
 
     let lastError: string | undefined = undefined;
     server.stderr.on('data', (data) => {
         const errorOutput = data.toString('utf8');
-        Sentry.addBreadcrumb({ category: 'server-stderr', message: errorOutput, level: <any> 'warning' });
+        Sentry.addBreadcrumb({ category: 'server-stderr', message: errorOutput, level: <any>'warning' });
 
         // Remember the last '*Error:' line we saw.
         lastError = errorOutput
@@ -222,7 +222,7 @@ async function startServer(retries = 2) {
             error = new Error(`Server shutdown unexpectedly with code ${errorOrCode}`);
         }
 
-        Sentry.addBreadcrumb({ category: 'server-exit', message: error.message, level: <any> 'error', data: { serverRunTime } });
+        Sentry.addBreadcrumb({ category: 'server-exit', message: error.message, level: <any>'error', data: { serverRunTime } });
         reportError(error);
 
         showNotification(
