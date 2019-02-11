@@ -173,8 +173,9 @@ function showNotification(title: string, body: string) {
 async function startServer(retries = 2) {
     const binName = isWindows ? 'httptoolkit-server.cmd' : 'httptoolkit-server';
     const serverBinPath = path.join(__dirname, '..', 'httptoolkit-server', 'bin', binName);
+    const serverBinCommand = isWindows ? `"${serverBinPath}"` : serverBinPath;
 
-    server = spawn(serverBinPath, ['start'], {
+    server = spawn(serverBinCommand, ['start'], {
         windowsHide: true,
         stdio: ['inherit', 'pipe', 'pipe'],
         shell: isWindows, // Required to spawn a .cmd script
