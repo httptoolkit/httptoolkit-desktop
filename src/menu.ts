@@ -89,7 +89,14 @@ if (process.platform === 'darwin') {
     menuTemplate.unshift({
         label: '&File',
         submenu: [
-            { role: 'close' }
+            {
+                // This should close the Window, but look like Quit. End behaviour is that every
+                // Window _acts_ like a separate process, but is really a separate window.
+                // (This lets us easily share a single server instance)
+                role: 'close',
+                label: 'Quit',
+                accelerator: 'CommandOrControl+Q'
+            }
         ]
     });
 }
