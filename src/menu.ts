@@ -89,7 +89,7 @@ if (process.platform === 'darwin') {
     menuTemplate.unshift({
         label: '&File',
         submenu: [
-            { role: 'quit' }
+            { role: 'close' }
         ]
     });
 }
