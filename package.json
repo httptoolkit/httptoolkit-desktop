@@ -20,7 +20,7 @@
     "forge": "./electron-forge.config.js"
   },
   "dependencies": {
-    "@sentry/electron": "^0.14.0",
+    "@sentry/electron": "^0.17.1",
     "electron-compile": "^6.4.4",
     "electron-context-menu": "^0.10.1",
     "electron-first-run": "^2.0.0",
@@ -41,7 +41,7 @@
     "electron": "^4.1.4",
     "electron-forge": "^5.2.3",
     "electron-prebuilt-compile": "4.0.0",
-    "httptoolkit-server": "^0.1.8",
+    "httptoolkit-server": "^0.1.10",
     "lodash": "^4.17.11",
     "node-fetch": "^2.3.0",
     "rimraf": "^2.6.3",
