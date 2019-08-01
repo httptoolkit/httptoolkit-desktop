@@ -36,13 +36,15 @@ module.exports = {
         "ignore": [
             "certificates"
         ],
-        "afterCopy": [
-            "./src/after-copy.js"
-        ],
+        "afterCopy": ["./src/hooks/after-copy.js"],
         "appBundleId": "tech.httptoolkit.desktop",
         "appCategoryType": "public.app-category.developer-tools",
         "osxSign": {
-            "keychain": "httptoolkit-build.keychain"
+            "keychain": "httptoolkit-build.keychain",
+            "gatekeeper-assess": false,
+            "hardened-runtime": true,
+            "entitlements": "src/entitlements.plist",
+            "entitlements-inherit": "src/entitlements.plist"
         }
     },
     "electronWinstallerConfig": {
