@@ -19,7 +19,13 @@ const serverVersion: string = 'v' + packageJsonLock.dependencies['httptoolkit-se
 * and because it makes it possible for users to run the server directly
 * with minimal effort, if they so choose.
 */
-export = async function (buildPath: string, _electronVersion: string, platform: string, arch: string, callback: Function) {
+export = async function (
+    buildPath: string,
+    _electronVersion: string,
+    platform: string,
+    arch: string,
+    callback: Function
+) {
     try {
         console.log(`Downloading httptoolkit-server ${serverVersion} for ${platform}-${arch}`);
 

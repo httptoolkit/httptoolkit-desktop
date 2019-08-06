@@ -40,6 +40,7 @@
     "babel-preset-env": "^1.7.0",
     "electron": "^4.1.4",
     "electron-forge": "^5.2.3",
+    "electron-notarize": "^0.1.1",
     "electron-prebuilt-compile": "4.0.0",
     "httptoolkit-server": "^0.1.17",
     "lodash": "^4.17.13",

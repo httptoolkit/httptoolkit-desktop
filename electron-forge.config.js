@@ -76,4 +76,7 @@ module.exports = {
         "owner": "httptoolkit",
         "name": "httptoolkit-desktop"
     },
+    "hooks": {
+        "postPackage": require("./src/hooks/post-package.js")
+    }
 }
