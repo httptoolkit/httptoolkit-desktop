@@ -42,7 +42,7 @@
     "electron-forge": "^5.2.3",
     "electron-notarize": "^0.1.1",
     "electron-prebuilt-compile": "4.0.0",
-    "httptoolkit-server": "^0.1.23",
+    "httptoolkit-server": "^0.1.24",
     "lodash": "^4.17.13",
     "node-fetch": "^2.3.0",
     "rimraf": "^2.6.3",
