@@ -90,6 +90,8 @@ const amMainInstance = app.requestSingleInstanceLock();
 if (!amMainInstance) {
     app.quit();
 } else {
+    const cliArgs = process.argv.slice(1);
+
     app.on('ready', () => {
         Menu.setApplicationMenu(menu);
     });
@@ -151,6 +153,18 @@ if (!amMainInstance) {
                 window.httpToolkitDesktopVersion = '${packageJson.version}';
                 window.postMessage({ httpToolkitDesktopVersion: window.httpToolkitDesktopVersion }, '*');
             `);
+
+            if (cliArgs[0] === '--with-forwarding') {
+                if (!cliArgs[1] || !cliArgs[1].includes('|') || cliArgs[1].match(/'"\n/)) {
+                    console.error('Invalid --with-forwarding argument');
+                    app.quit(1);
+                } else {
+                    contents.executeJavaScript(`
+                        window.httpToolkitForwardingDefault = '${cliArgs[1]}';
+                        window.postMessage({ httpToolkitForwardingDefault: window.httpToolkitForwardingDefault }, '*');
+                    `);
+                }
+            }
         });
 
         // Redirect all navigations & new windows to the system browser
