@@ -22,7 +22,7 @@ artifacts:
 branches:
   only:
   - master
-  - /^v\d\.\d\.\d/
+  - /^v\d\.\d\.\d(-.*)?/
 
 install:
 - ps: iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1'))
