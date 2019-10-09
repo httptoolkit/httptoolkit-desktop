@@ -88,6 +88,7 @@ const createWindow = () => {
 
 const amMainInstance = app.requestSingleInstanceLock();
 if (!amMainInstance) {
+    console.log('Not the main instance - quitting');
     app.quit();
 } else {
     app.on('ready', () => {
