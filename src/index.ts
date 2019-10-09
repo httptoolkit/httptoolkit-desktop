@@ -237,7 +237,7 @@ if (!amMainInstance) {
 
             showErrorAlert(
                 'HTTP Toolkit hit an error',
-                `${error.message}. Please file an issue at github.com/httptoolkit/feedback.`
+                `${error.message}.\n\nPlease file an issue at github.com/httptoolkit/feedback.`
             );
 
             // Retry limited times, but not for near-immediate failures.
