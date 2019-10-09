@@ -13,7 +13,7 @@ function reportError(error: Error | string) {
 import { spawn, exec, ChildProcess } from 'child_process';
 import * as os from 'os';
 import * as path from 'path';
-import { app, BrowserWindow, shell, Menu, Notification } from 'electron';
+import { app, BrowserWindow, shell, Menu, dialog } from 'electron';
 
 import * as windowStateKeeper from 'electron-window-state';
 
@@ -174,9 +174,9 @@ if (!amMainInstance) {
         });
     });
 
-    function showNotification(title: string, body: string) {
-        const notification = new Notification({ title, body, icon: path.join(__dirname, 'src', 'icon.png') });
-        notification.show();
+    function showErrorAlert(title: string, body: string) {
+        console.warn(`${title}: ${body}`);
+        dialog.showErrorBox(title, body);
     }
 
     async function startServer(retries = 2) {
@@ -235,8 +235,8 @@ if (!amMainInstance) {
             Sentry.addBreadcrumb({ category: 'server-exit', message: error.message, level: <any>'error', data: { serverRunTime } });
             reportError(error);
 
-            showNotification(
-                'HTTP Toolkit crashed',
+            showErrorAlert(
+                'HTTP Toolkit hit an error',
                 `${error.message}. Please file an issue at github.com/httptoolkit/feedback.`
             );
 
