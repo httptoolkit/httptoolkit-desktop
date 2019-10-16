@@ -10,6 +10,7 @@
     we have to do this instead.
 */
 
+const path = require('path');
 const {
     ELECTRON_FORGE_ELECTRON_WINSTALLER_CONFIG_CERTIFICATE_PASSWORD
 } = process.env;
@@ -54,8 +55,11 @@ module.exports = {
         "iconUrl": "https://httptoolkit.tech/favicon.ico",
         "setupIcon": "./src/icon.ico",
         "loadingGif": "./src/installing.gif",
-        "certificateFile": "./certificates/encrypted-win-cert.pfx",
-        "certificatePassword": ELECTRON_FORGE_ELECTRON_WINSTALLER_CONFIG_CERTIFICATE_PASSWORD
+        "signWithParams": `/a /f "${
+            path.resolve('./certificates/encrypted-win-cert.pfx')
+        }" /p "${
+            ELECTRON_FORGE_ELECTRON_WINSTALLER_CONFIG_CERTIFICATE_PASSWORD
+        }" /tr http://timestamp.digicert.com/`
     },
     "electronInstallerDMG": {
         "name": "HTTP Toolkit",
