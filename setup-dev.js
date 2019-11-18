@@ -1,29 +1,42 @@
 require('ts-node/register');
 
 const { promisify } = require('util');
+const path = require('path');
 const os = require('os');
 const fs = require('fs');
 const rimraf = require('rimraf');
-const insertServer = promisify(require('./src/after-copy-insert-server'));
 
 const canAccess = (file) => promisify(fs.access)(file).then(() => true).catch(() => false);
 const deleteDir = promisify(rimraf);
+const mkdir = promisify(fs.mkdir);
+const writeFile = promisify(fs.writeFile);
+const chmod = promisify(fs.chmod);
 
-const packageJsonLock = require('./package-lock.json');
-const requiredServerVersion = packageJsonLock.dependencies['httptoolkit-server'].version;
+const sleepForeverScript = `#!/usr/bin/env node
+setInterval(() => {}, 999999999);
+`;
 
-// Manually trigger the after-copy hook, to give us an env like the real package
+// For a full local dev environment, we want to use a standalone UI & server running externally.
+// This lets us edit both and the desktop together. We do this by creating a fake server,
+// which doesn't exit, but otherwise does nothing.
 async function setUpDevEnv() {
-    const serverExists = await canAccess('./httptoolkit-server');
-    const serverVersion = serverExists ? require('./httptoolkit-server/package.json').version : null;
+    const serverFolder = path.join(__dirname, 'httptoolkit-server');
+    const serverExists = await canAccess(serverFolder);
+    if (serverExists) {
+        await deleteDir(serverFolder);
 
-    if (serverVersion !== requiredServerVersion) {
-        if (serverExists) await deleteDir('./httptoolkit-server');
-        await insertServer(__dirname, '', os.platform(), os.arch());
-        console.log('Dev setup completed.');
-    } else {
-        console.log('Correct server already downloaded, nothing to do.');
+        const binFolder = path.join(serverFolder, 'bin');
+        await mkdir(binFolder, { recursive: true });
+
+        const bins = ['httptoolkit-server', 'httptoolkit-server.cmd'].map((bin) => path.join(binFolder, bin));
+        await Promise.all(bins.map(async (bin) => {
+            await writeFile(bin, sleepForeverScript);
+            await chmod(bin, 0o755);
+        }));
     }
 }
 
-setUpDevEnv();
+setUpDevEnv().catch(e => {
+    console.error(e);
+    process.exit(1);
+});

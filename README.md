@@ -36,8 +36,12 @@ To get started:
 * Clone this repo.
 * `npm install`
 * To build & run the electron app locally:
-    * `npm start` - runs the desktop app, downloading the latest server & using the UI from `app.httptoolkit.tech`.
-    * `npm run start:dev` - runs the desktop app, but using the UI from `localhost:8080` (i.e. assuming you're running your own UI).
+    * `npm start` - runs the desktop app, downloading the latest live server & using the live UI from `app.httptoolkit.tech`.
+        * This is useful if you're working on just the desktop app, and want to see your changes with the real live environment.
+    * `npm run start:dev` - runs the desktop app, with no built-in server using the UI from `localhost:8080`
+        * This effectively assumes you're bringing your own working UI & server, and is useful for working on this.
+        * You can start both from the [UI project](https://github.com/httptoolkit/httptoolkit-ui) with just `npm start`, to work on the UI within the desktop app.
+        * Alternatively, you can run `npm start` in the [server project](https://github.com/httptoolkit/httptoolkit-server), and `npm run start:web` in the UI project, to work on the server or both.
 * To build distributable packages:
     * `npm run make` - this will attempt to build & package the desktop app for your current platform
 

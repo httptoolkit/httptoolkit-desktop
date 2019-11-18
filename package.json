@@ -6,8 +6,9 @@
   "description": "HTTP(S) debugging proxy, analyzer and client",
   "main": "src/index.ts",
   "scripts": {
-    "prestart": "node setup-dev.js",
+    "prestart": "node setup-local.js",
     "start": "electron-forge start",
+    "prestart:dev": "node setup-dev.js",
     "start:dev": "APP_URL='http://local.httptoolkit.tech:8080' electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
