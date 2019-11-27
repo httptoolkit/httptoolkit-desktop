@@ -86,6 +86,10 @@ const createWindow = () => {
     });
 };
 
+function disableEventReporting() {
+    Sentry.getCurrentHub().getClient().getOptions().enabled = false;
+}
+
 const amMainInstance = app.requestSingleInstanceLock();
 if (!amMainInstance) {
     console.log('Not the main instance - quitting');
@@ -120,13 +124,16 @@ if (!amMainInstance) {
                             reportError(error);
                         }
 
-                        // We've done our best - now shut down for real
+                        // We've done our best - now shut down for real. Disable errors, otherwise
+                        // we can receive reports for invisible errors during/just after exit.
                         app.quit();
+                        process.nextTick(disableEventReporting);
                     });
                 } else {
                     // Make sure we clean up the whole group (shell + node).
                     // https://azimi.me/2014/12/31/kill-child_process-node-js.html
                     process.kill(-server.pid);
+                    process.nextTick(disableEventReporting);
                 }
             } catch (error) {
                 console.log('Failed to kill server', error);
