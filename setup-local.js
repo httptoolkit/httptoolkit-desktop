@@ -16,7 +16,7 @@ const requiredServerVersion = packageJsonLock.dependencies['httptoolkit-server']
 // This real prod server will then be used with the real prod web UI, but this local desktop app.
 // Manually trigger the after-copy hook, to give us an env like the real package
 async function setUpLocalEnv() {
-    const serverExists = await canAccess('./httptoolkit-server');
+    const serverExists = await canAccess('./httptoolkit-server/package.json');
     const serverVersion = serverExists ? require('./httptoolkit-server/package.json').version : null;
 
     if (serverVersion !== requiredServerVersion) {
