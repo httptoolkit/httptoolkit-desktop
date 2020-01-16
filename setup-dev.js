@@ -22,18 +22,17 @@ setInterval(() => {}, 999999999);
 async function setUpDevEnv() {
     const serverFolder = path.join(__dirname, 'httptoolkit-server');
     const serverExists = await canAccess(serverFolder);
-    if (serverExists) {
-        await deleteDir(serverFolder);
 
-        const binFolder = path.join(serverFolder, 'bin');
-        await mkdir(binFolder, { recursive: true });
+    if (serverExists) await deleteDir(serverFolder);
 
-        const bins = ['httptoolkit-server', 'httptoolkit-server.cmd'].map((bin) => path.join(binFolder, bin));
-        await Promise.all(bins.map(async (bin) => {
-            await writeFile(bin, sleepForeverScript);
-            await chmod(bin, 0o755);
-        }));
-    }
+    const binFolder = path.join(serverFolder, 'bin');
+    await mkdir(binFolder, { recursive: true });
+
+    const bins = ['httptoolkit-server', 'httptoolkit-server.cmd'].map((bin) => path.join(binFolder, bin));
+    await Promise.all(bins.map(async (bin) => {
+        await writeFile(bin, sleepForeverScript);
+        await chmod(bin, 0o755);
+    }));
 }
 
 setUpDevEnv().catch(e => {
