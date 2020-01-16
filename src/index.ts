@@ -13,7 +13,9 @@ function reportError(error: Error | string) {
 import { spawn, exec, ChildProcess } from 'child_process';
 import * as os from 'os';
 import * as path from 'path';
+import * as querystring from 'querystring';
 import { app, BrowserWindow, shell, Menu, dialog } from 'electron';
+import * as uuid from 'uuid/v4';
 
 import * as windowStateKeeper from 'electron-window-state';
 
@@ -30,6 +32,8 @@ const packageJson = require('../package.json');
 const isWindows = os.platform() === 'win32';
 
 const APP_URL = process.env.APP_URL || 'https://app.httptoolkit.tech';
+const AUTH_TOKEN = uuid();
+const DESKTOP_VERSION = packageJson.version;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -72,7 +76,10 @@ const createWindow = () => {
 
     windowState.manage(window);
 
-    window.loadURL(APP_URL);
+    window.loadURL(APP_URL + '?' + querystring.stringify({
+        authToken: AUTH_TOKEN,
+        desktopVersion: DESKTOP_VERSION
+    }));
 
     window.on('ready-to-show', function () {
         window!.show();
@@ -152,14 +159,27 @@ if (!amMainInstance) {
     });
 
     app.on('web-contents-created', (_event, contents) => {
-        contents.on('dom-ready', () => {
-            // Define & announce the desktop shell version to the app
-            // Not used now, intended to allow us to detect and prompt for updates
-            // in future, if a certain desktop shell version is required.
+        function injectValue(name: string, value: string) {
+            // Set a variable globally, and self-postmessage it too (to ping
+            // anybody who's explicitly waiting for it).
             contents.executeJavaScript(`
-                window.httpToolkitDesktopVersion = '${packageJson.version}';
-                window.postMessage({ httpToolkitDesktopVersion: window.httpToolkitDesktopVersion }, '*');
+                window.${name} = '${value}';
+                window.postMessage({ ${name}: window.${name} }, '*');
             `);
+        }
+
+        contents.on('dom-ready', () => {
+            // Define & announce config values to the app.
+
+            // Desktop version isn't used yet. Intended to allow us to detect
+            // and prompt for updates in future if a certain desktop version
+            // is required, and for error reporting context when things go wrong.
+            injectValue('httpToolkitDesktopVersion', DESKTOP_VERSION);
+
+            // Auth token is also injected into query string, but query string
+            // gets replaced on first navigation (immediately), whilst global
+            // vars like this are forever.
+            injectValue('httpToolkitAuthToken', AUTH_TOKEN);
         });
 
         // Redirect all navigations & new windows to the system browser
@@ -192,7 +212,7 @@ if (!amMainInstance) {
         const serverBinPath = path.join(__dirname, '..', 'httptoolkit-server', 'bin', binName);
         const serverBinCommand = isWindows ? `"${serverBinPath}"` : serverBinPath;
 
-        server = spawn(serverBinCommand, ['start'], {
+        server = spawn(serverBinCommand, ['start', '--token', AUTH_TOKEN], {
             windowsHide: true,
             stdio: ['inherit', 'pipe', 'pipe'],
             shell: isWindows, // Required to spawn a .cmd script

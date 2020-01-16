@@ -28,7 +28,8 @@
     "electron-squirrel-startup": "^1.0.0",
     "electron-window-state": "^5.0.3",
     "tslib": "^1.10.0",
-    "universal-analytics": "^0.4.20"
+    "universal-analytics": "^0.4.20",
+    "uuid": "^3.3.3"
   },
   "devDependencies": {
     "@types/electron-devtools-installer": "^2.0.2",
@@ -37,6 +38,7 @@
     "@types/node": "^12.12.14",
     "@types/node-fetch": "^2.1.4",
     "@types/universal-analytics": "^0.4.3",
+    "@types/uuid": "^3.4.6",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-preset-env": "^1.7.0",
     "electron": "^4.1.4",
