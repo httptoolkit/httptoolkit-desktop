@@ -103,6 +103,18 @@ if (!amMainInstance) {
     console.log('Not the main instance - quitting');
     app.quit();
 } else {
+    const cliArgs = process.argv.slice(1);
+
+    let forwardingUrl: string | undefined = undefined;
+    if (cliArgs[0] === '--with-forwarding') {
+        if (!cliArgs[1] || !cliArgs[1].includes('|') || cliArgs[1].match(/'"\n/)) {
+            console.error('Invalid --with-forwarding argument');
+            process.exit(1); // Safe to hard exit - we haven't opened/started anything yet.
+        } else {
+            forwardingUrl = cliArgs[1];
+        }
+    }
+
     app.on('ready', () => {
         Menu.setApplicationMenu(menu);
     });
@@ -180,6 +192,8 @@ if (!amMainInstance) {
             // gets replaced on first navigation (immediately), whilst global
             // vars like this are forever.
             injectValue('httpToolkitAuthToken', AUTH_TOKEN);
+
+            if (forwardingUrl) injectValue('httpToolkitForwardingDefault', forwardingUrl);
         });
 
         // Redirect all navigations & new windows to the system browser
