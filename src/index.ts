@@ -200,15 +200,19 @@ if (!amMainInstance) {
             detached: !isWindows // Detach on Linux, so we can cleanly kill as a group
         });
 
-        server.stdout.pipe(process.stdout);
-        server.stderr.pipe(process.stderr);
+        // Both not null because we pass 'pipe' for args 2 & 3 above.
+        const stdout = server.stdout!;
+        const stderr = server.stderr!;
 
-        server.stdout.on('data', (data) => {
+        stdout.pipe(process.stdout);
+        stderr.pipe(process.stderr);
+
+        server.stdout!.on('data', (data) => {
             Sentry.addBreadcrumb({ category: 'server-stdout', message: data.toString('utf8'), level: <any>'info' });
         });
 
         let lastError: string | undefined = undefined;
-        server.stderr.on('data', (data) => {
+        stderr.on('data', (data) => {
             const errorOutput = data.toString('utf8');
             Sentry.addBreadcrumb({ category: 'server-stderr', message: errorOutput, level: <any>'warning' });
 
