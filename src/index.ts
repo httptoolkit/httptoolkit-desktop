@@ -107,8 +107,11 @@ if (!amMainInstance) {
     const args = yargs
         .option('with-forwarding', {
             type: 'string',
-            hidden: true
+            hidden: true,
+            description: "Preconfigure a forwarding address, for integration with other tools."
         })
+        .version(DESKTOP_VERSION)
+        .help()
         .argv;
 
     if (
