@@ -31,7 +31,9 @@ export = async function (
 
         const assetRegex = new RegExp(`httptoolkit-server-${serverVersion}-${platform}-${arch}.tar.gz`);
 
-        const headers = process.env.GITHUB_TOKEN ? { Authorization: `token ${process.env.GITHUB_TOKEN}` } : {}
+        const headers: { Authorization: string } | {} = process.env.GITHUB_TOKEN
+            ? { Authorization: `token ${process.env.GITHUB_TOKEN}` }
+            : {}
 
         const response = await fetch(
             'https://api.github.com/repos/httptoolkit/httptoolkit-server/releases',

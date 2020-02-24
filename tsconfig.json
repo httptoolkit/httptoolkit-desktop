@@ -16,7 +16,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "pretty": true,
-    "target": "es2015",
+    "target": "ES2015",
     "jsx": "react"
   },
   "formatCodeOptions": {

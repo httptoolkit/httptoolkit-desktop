@@ -115,7 +115,7 @@ function fixAccelerators(menuTemplates: MenuItemConstructorOptions[]): MenuItemC
             if (Array.isArray(submenu)) {
                 template.submenu = fixAccelerators(submenu);
             } else {
-                template.submenu = fixAccelerators([submenu]);
+                template.submenu = fixAccelerators([submenu as MenuItemConstructorOptions]);
             }
         }
 
