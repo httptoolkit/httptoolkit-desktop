@@ -16,6 +16,7 @@ import * as path from 'path';
 import * as querystring from 'querystring';
 import { app, BrowserWindow, shell, Menu, dialog } from 'electron';
 import * as uuid from 'uuid/v4';
+import * as yargs from 'yargs';
 
 import * as windowStateKeeper from 'electron-window-state';
 
@@ -103,16 +104,21 @@ if (!amMainInstance) {
     console.log('Not the main instance - quitting');
     app.quit();
 } else {
-    const cliArgs = process.argv.slice(1);
+    const args = yargs
+        .option('with-forwarding', {
+            type: 'string',
+            hidden: true
+        })
+        .argv;
 
-    let forwardingUrl: string | undefined = undefined;
-    if (cliArgs[0] === '--with-forwarding') {
-        if (!cliArgs[1] || !cliArgs[1].includes('|') || cliArgs[1].match(/'"\n/)) {
-            console.error('Invalid --with-forwarding argument');
-            process.exit(1); // Safe to hard exit - we haven't opened/started anything yet.
-        } else {
-            forwardingUrl = cliArgs[1];
-        }
+    if (
+        args['with-forwarding'] && (
+            !args['with-forwarding'].includes('|') ||
+            args['with-forwarding'].match(/'"\n/)
+        )
+    ) {
+        console.error('Invalid --with-forwarding argument');
+        process.exit(1); // Safe to hard exit - we haven't opened/started anything yet.
     }
 
     app.on('ready', () => {
@@ -193,7 +199,7 @@ if (!amMainInstance) {
             // vars like this are forever.
             injectValue('httpToolkitAuthToken', AUTH_TOKEN);
 
-            if (forwardingUrl) injectValue('httpToolkitForwardingDefault', forwardingUrl);
+            if (args['with-forwarding']) injectValue('httpToolkitForwardingDefault', args['with-forwarding']);
         });
 
         // Redirect all navigations & new windows to the system browser
