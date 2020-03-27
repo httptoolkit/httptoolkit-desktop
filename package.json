@@ -47,7 +47,7 @@
     "electron-forge": "^5.2.4",
     "electron-notarize": "^0.2.1",
     "electron-prebuilt-compile": "4.0.0",
-    "httptoolkit-server": "^0.1.33",
+    "httptoolkit-server": "^0.1.34",
     "lodash": "^4.17.15",
     "node-fetch": "^2.6.0",
     "rimraf": "^2.6.3",
