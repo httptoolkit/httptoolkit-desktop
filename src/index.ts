@@ -240,7 +240,12 @@ if (!amMainInstance) {
             stdio: ['inherit', 'pipe', 'pipe'],
             shell: isWindows, // Required to spawn a .cmd script
             windowsVerbatimArguments: false, // Fixes quoting in windows shells
-            detached: !isWindows // Detach on Linux, so we can cleanly kill as a group
+            detached: !isWindows, // Detach on Linux, so we can cleanly kill as a group
+            env: Object.assign({}, process.env, {
+                NODE_OPTIONS:
+                    process.env.HTTPTOOLKIT_NODE_OPTIONS || // Allow manually configuring node options
+                    "--max-http-header-size=102400" // By default, set max header size to 100KB
+            })
         });
 
         // Both not null because we pass 'pipe' for args 2 & 3 above.
