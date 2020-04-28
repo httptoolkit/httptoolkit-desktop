@@ -54,6 +54,11 @@ let server: ChildProcess | null = null;
 app.commandLine.appendSwitch('ignore-connections-limit', 'app.httptoolkit.tech');
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
 
+// Don't send our own traffic through the system proxy! Doing so causes issues when
+// we ourselves are the system proxy, and it gets super noisey.
+['http_proxy', 'HTTP_PROXY', 'https_proxy', 'HTTPS_PROXY'].forEach((v) => delete process.env[v]);
+app.commandLine.appendSwitch('no-proxy-server');
+
 const createWindow = () => {
     // Load the previous window state, falling back to defaults
     let windowState = windowStateKeeper({
