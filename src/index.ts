@@ -53,6 +53,7 @@ let server: ChildProcess | null = null;
 
 app.commandLine.appendSwitch('ignore-connections-limit', 'app.httptoolkit.tech');
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
+app.commandLine.appendSwitch('js-flags', '--expose-gc'); // Expose window.gc in the UI
 
 // Don't send our own traffic through the system proxy! Doing so causes issues when
 // we ourselves are the system proxy, and it gets super noisey.
