@@ -280,7 +280,8 @@ if (!amMainInstance) {
         if (serverPaths.some((filename) =>
             !semver.valid(filename.replace(/\.partial\.\d+$/, '')) &&
             filename !== 'bin' &&
-            filename !== 'current'
+            filename !== 'current' &&
+            filename !== '.DS_Store' // Meaningless Mac folder metadata
         )) {
             // If the folder contains something other than the expected version folders, be careful.
             console.log(serverPaths);
