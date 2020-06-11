@@ -21,6 +21,7 @@ artifacts:
 
 branches:
   only:
+  - test-build
   - master
   - /^v\d\.\d\.\d/
 
