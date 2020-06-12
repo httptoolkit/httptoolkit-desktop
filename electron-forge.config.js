@@ -59,7 +59,7 @@ module.exports = {
             path.resolve('./certificates/encrypted-win-cert.pfx')
         }" /p "${
             ELECTRON_FORGE_ELECTRON_WINSTALLER_CONFIG_CERTIFICATE_PASSWORD
-        }" /t http://timestamp.comodoca.com/`
+        }" /td sha256 /tr http://timestamp.comodoca.com/`
     },
     "electronInstallerDMG": {
         "name": "HTTP Toolkit",
