@@ -1,7 +1,7 @@
 {
   "name": "httptoolkit-desktop",
   "productName": "HTTP Toolkit",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "private": true,
   "description": "HTTP(S) debugging proxy, analyzer and client",
   "main": "src/index.ts",
