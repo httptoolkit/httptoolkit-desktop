@@ -51,7 +51,7 @@
     "electron-notarize": "^0.2.1",
     "electron-prebuilt-compile": "4.0.0",
     "httptoolkit-server": "^0.1.42",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "node-fetch": "^2.6.0",
     "targz": "^1.0.1",
     "ts-node": "^7.0.1",
