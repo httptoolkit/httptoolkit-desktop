@@ -310,13 +310,14 @@ if (!amMainInstance) {
         const serverBinPath = path.join(__dirname, '..', 'httptoolkit-server', 'bin', binName);
         const serverBinCommand = isWindows ? `"${serverBinPath}"` : serverBinPath;
 
-        server = spawn(serverBinCommand, ['start', '--token', AUTH_TOKEN], {
+        server = spawn(serverBinCommand, ['start'], {
             windowsHide: true,
             stdio: ['inherit', 'pipe', 'pipe'],
             shell: isWindows, // Required to spawn a .cmd script
             windowsVerbatimArguments: false, // Fixes quoting in windows shells
             detached: !isWindows, // Detach on Linux, so we can cleanly kill as a group
             env: Object.assign({}, process.env, {
+                HTK_SERVER_TOKEN: AUTH_TOKEN,
                 NODE_OPTIONS:
                     process.env.HTTPTOOLKIT_NODE_OPTIONS || // Allow manually configuring node options
                     "--max-http-header-size=102400" // By default, set max header size to 100KB
