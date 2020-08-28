@@ -318,6 +318,7 @@ if (!amMainInstance) {
             detached: !isWindows, // Detach on Linux, so we can cleanly kill as a group
             env: Object.assign({}, process.env, {
                 HTK_SERVER_TOKEN: AUTH_TOKEN,
+                NODE_SKIP_PLATFORM_CHECK: '1',
                 NODE_OPTIONS:
                     process.env.HTTPTOOLKIT_NODE_OPTIONS || // Allow manually configuring node options
                     "--max-http-header-size=102400" // By default, set max header size to 100KB
