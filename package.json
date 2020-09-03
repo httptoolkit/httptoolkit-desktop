@@ -46,7 +46,7 @@
     "@types/yargs": "^15.0.3",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-preset-env": "^1.7.0",
-    "electron": "^4.1.4",
+    "electron": "^7.2.4",
     "electron-forge": "^5.2.4",
     "electron-notarize": "^0.2.1",
     "electron-prebuilt-compile": "4.0.0",
