@@ -52,7 +52,7 @@
     "electron-prebuilt-compile": "4.0.0",
     "httptoolkit-server": "^1.0.1",
     "lodash": "^4.17.19",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "targz": "^1.0.1",
     "ts-node": "^7.0.1",
     "tslint": "^5.20.1",
