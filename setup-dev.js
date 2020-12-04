@@ -12,10 +12,6 @@ const mkdir = promisify(fs.mkdir);
 const writeFile = promisify(fs.writeFile);
 const chmod = promisify(fs.chmod);
 
-const sleepForeverScript = `#!/usr/bin/env node
-setInterval(() => {}, 999999999);
-`;
-
 // For a full local dev environment, we want to use a standalone UI & server running externally.
 // This lets us edit both and the desktop together. We do this by creating a fake server,
 // which doesn't exit, but otherwise does nothing.
@@ -28,11 +24,16 @@ async function setUpDevEnv() {
     const binFolder = path.join(serverFolder, 'bin');
     await mkdir(binFolder, { recursive: true });
 
-    const bins = ['httptoolkit-server', 'httptoolkit-server.cmd'].map((bin) => path.join(binFolder, bin));
-    await Promise.all(bins.map(async (bin) => {
-        await writeFile(bin, sleepForeverScript);
-        await chmod(bin, 0o755);
-    }));
+    // Create a node/*nix-runnable fake-server that just sleeps forever:
+    const script = path.join(binFolder, "httptoolkit-server");
+    await writeFile(script, `#!/usr/bin/env node
+        setInterval(() => {}, 999999999);
+    `);
+    await chmod(script, 0o755);
+
+    // Create a windows wrapper for that script:
+    const winWrapper = path.join(binFolder, "httptoolkit-server.cmd");
+    await writeFile(winWrapper, `node "%~dp0\\httptoolkit-server" %*`);
 }
 
 setUpDevEnv().catch(e => {
