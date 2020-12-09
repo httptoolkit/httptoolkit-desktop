@@ -1,11 +1,9 @@
-require('ts-node/register');
+import { promisify } from 'util';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as rimraf from 'rimraf';
 
-const { promisify } = require('util');
-const path = require('path');
-const fs = require('fs');
-const rimraf = require('rimraf');
-
-const canAccess = (file) => promisify(fs.access)(file).then(() => true).catch(() => false);
+const canAccess = (file: string) => promisify(fs.access)(file).then(() => true).catch(() => false);
 const deleteDir = promisify(rimraf);
 const mkdir = promisify(fs.mkdir);
 const writeFile = promisify(fs.writeFile);
