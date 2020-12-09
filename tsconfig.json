@@ -1,26 +1,31 @@
 {
-  "compilerOptions": {
-    "removeComments": false,
-    "preserveConstEnums": true,
-    "sourceMap": true,
-    "declaration": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "strictNullChecks": true,
-    "noUnusedLocals": true,
-    "noImplicitThis": true,
-    "noUnusedParameters": true,
-    "importHelpers": true,
-    "noEmitHelpers": true,
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "pretty": true,
-    "target": "ES2015",
-    "jsx": "react"
-  },
-  "formatCodeOptions": {
-    "indentSize": 2,
-    "tabSize": 2
-  }
+    "compilerOptions": {
+        "outDir": "./build",
+        "removeComments": false,
+        "preserveConstEnums": true,
+        "sourceMap": true,
+        "declaration": true,
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "suppressImplicitAnyIndexErrors": true,
+        "strictNullChecks": true,
+        "noUnusedLocals": true,
+        "noImplicitThis": true,
+        "noUnusedParameters": true,
+        "importHelpers": true,
+        "noEmitHelpers": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "pretty": true,
+        "target": "ES2015",
+        "jsx": "react"
+    },
+    "formatCodeOptions": {
+        "indentSize": 4,
+        "tabSize": 4
+    },
+    "include": [
+        "./src/index.ts",
+        "./custom-typings/**/*.d.ts"
+    ]
 }

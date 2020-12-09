@@ -3,27 +3,70 @@
   "productName": "HTTP Toolkit",
   "version": "1.0.2",
   "private": true,
-  "description": "HTTP(S) debugging proxy, analyzer and client",
-  "main": "src/index.ts",
+  "description": "HTTP(S) debugging, development & testing tool",
+  "main": "build/index.js",
   "scripts": {
+    "postinstall": "electron-builder install-app-deps",
+    "build": "npm run build:src && npm run build:electron",
     "build:src": "tsc",
+    "build:electron": "electron-builder build",
+    "build:dir-only": "electron-builder --dir",
     "start": "node setup-local.js && npm run start:app",
     "start:dev": "node setup-dev.js && cross-env APP_URL='http://local.httptoolkit.tech:8080' npm run start:app",
-    "start:app": "tsc-watch --onSuccess 'electron .'",
-    "package": "electron-forge package",
-    "make": "electron-forge make",
-    "publish": "electron-forge publish"
+    "start:app": "tsc-watch --onSuccess 'electron .'"
   },
   "keywords": [],
   "author": "Tim Perry",
   "license": "AGPL-3.0-or-later",
   "config": {
-    "httptoolkit-server-version": "1.0.2",
-    "forge": "./electron-forge.config.js"
+    "httptoolkit-server-version": "1.0.2"
+  },
+  "build": {
+    "appId": "tech.httptoolkit.desktop",
+    "extends": null,
+    "productName": "HTTP Toolkit",
+    "files": [
+      "**/*",
+      "build/**/*",
+      "!custom-typings",
+      "!certificates",
+      "!appveyor-tools",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+    ],
+    "extraResources": [
+      "httptoolkit-server/**/*"
+    ],
+    "linux": {
+      "target": [
+        "deb"
+      ],
+      "executableName": "httptoolkit",
+      "category": "Development",
+      "icon": "src/icon.png",
+      "maintainer": "contact@httptoolkit.tech",
+      "desktop": {
+        "Name": "HTTP Toolkit",
+        "Comment": "HTTP(S) debugging, development & testing tool",
+        "Terminal": "false",
+        "Type": "Application",
+        "Categories": "Development;Network",
+        "StartupNotify": true
+      }
+    },
+    "afterSign": "./src/hooks/post-package.js"
   },
   "dependencies": {
     "@sentry/electron": "^0.17.1",
-    "electron-compile": "^6.4.4",
     "electron-context-menu": "^0.15.1",
     "electron-first-run": "^3.0.0",
     "electron-squirrel-startup": "^1.0.0",
@@ -50,9 +93,9 @@
     "babel-preset-env": "^1.7.0",
     "cross-env": "^7.0.3",
     "electron": "^4.1.4",
+    "electron-builder": "^22.9.1",
     "electron-forge": "^5.2.4",
     "electron-notarize": "^0.2.1",
-    "electron-prebuilt-compile": "4.0.0",
     "lodash": "^4.17.19",
     "node-fetch": "^2.6.1",
     "targz": "^1.0.1",
