@@ -13,4 +13,4 @@ jobs:
           node-version: 14
 
       - run: npm ci
-      - run: npm build
+      - run: npm run build
