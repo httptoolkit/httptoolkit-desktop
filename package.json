@@ -69,7 +69,8 @@
         "StartupNotify": true
       }
     },
-    "afterSign": "./src/hooks/after-sign.js"
+    "afterSign": "./src/hooks/after-sign.js",
+    "publish": null
   },
   "dependencies": {
     "@sentry/electron": "^0.17.1",
