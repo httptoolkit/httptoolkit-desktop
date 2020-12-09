@@ -400,26 +400,18 @@ if (!amMainInstance) {
 
     reportStartupEvents();
 
-    if (require('electron-squirrel-startup')) {
-        // We've been opened as part of a Windows install.
-        // squirrel-startup handles all the hard work, we just need to not do anything.
+    cleanupOldServers().catch(console.log)
+    .then(() => startServer())
+    .catch((err) => {
+        console.error('Failed to start server, exiting.', err);
 
-        // Brief delay before quitting, so our analytics register
-        setTimeout(() => app.quit(), 500);
-    } else {
-        cleanupOldServers().catch(console.log)
-        .then(() => startServer())
-        .catch((err) => {
-            console.error('Failed to start server, exiting.', err);
+        // Hide immediately, shutdown entirely after a brief pause for Sentry
+        windows.forEach(window => window.hide());
+        setTimeout(() => process.exit(1), 500);
+    });
 
-            // Hide immediately, shutdown entirely after a brief pause for Sentry
-            windows.forEach(window => window.hide());
-            setTimeout(() => process.exit(1), 500);
-        });
-
-        app.on('ready', () => createWindow());
-        // We use a single process instance to manage the server, but we
-        // do allow multiple windows.
-        app.on('second-instance', () => createWindow());
-    }
+    app.on('ready', () => createWindow());
+    // We use a single process instance to manage the server, but we
+    // do allow multiple windows.
+    app.on('second-instance', () => createWindow());
 }

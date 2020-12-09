@@ -47,6 +47,11 @@
     "extraResources": [
       "httptoolkit-server/**/*"
     ],
+    "win": {
+      "target": ["nsis"],
+      "icon": "./src/icon.ico",
+      "forceCodeSigning": true
+    },
     "linux": {
       "target": [
         "deb"
@@ -70,7 +75,6 @@
     "@sentry/electron": "^0.17.1",
     "electron-context-menu": "^0.15.1",
     "electron-first-run": "^3.0.0",
-    "electron-squirrel-startup": "^1.0.0",
     "electron-window-state": "^5.0.3",
     "rimraf": "^2.7.1",
     "semver": "^7.2.1",
