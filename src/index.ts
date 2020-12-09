@@ -36,14 +36,16 @@ import { menu } from './menu';
 const rmRF = promisify(rimraf);
 
 const packageJson = require('../package.json');
-const packageJsonLock = require('../package-lock.json');
 
 const isWindows = os.platform() === 'win32';
 
 const APP_URL = process.env.APP_URL || 'https://app.httptoolkit.tech';
 const AUTH_TOKEN = uuid();
 const DESKTOP_VERSION = packageJson.version;
-const BUNDLED_SERVER_VERSION = packageJsonLock.dependencies['httptoolkit-server'].version;
+const BUNDLED_SERVER_VERSION = packageJson.config['httptoolkit-server-version'];
+if (!semver.parse(BUNDLED_SERVER_VERSION)) {
+    throw new Error("Package.json must specify an exact server version");
+}
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.

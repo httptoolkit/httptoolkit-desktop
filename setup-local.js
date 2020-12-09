@@ -9,8 +9,8 @@ const insertServer = promisify(require('./src/after-copy-insert-server'));
 const canAccess = (file) => promisify(fs.access)(file).then(() => true).catch(() => false);
 const deleteDir = promisify(rimraf);
 
-const packageJsonLock = require('./package-lock.json');
-const requiredServerVersion = packageJsonLock.dependencies['httptoolkit-server'].version;
+const packageJson = require('./package.json');
+const requiredServerVersion = packageJson.config['httptoolkit-server-version'];
 
 // For local testing of the desktop app, we need to pull the latest server and unpack it.
 // This real prod server will then be used with the real prod web UI, but this local desktop app.

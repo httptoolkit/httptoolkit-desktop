@@ -2,7 +2,6 @@ require('ts-node/register');
 
 const { promisify } = require('util');
 const path = require('path');
-const os = require('os');
 const fs = require('fs');
 const rimraf = require('rimraf');
 

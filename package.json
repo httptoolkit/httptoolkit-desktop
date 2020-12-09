@@ -18,6 +18,7 @@
   "author": "Tim Perry",
   "license": "AGPL-3.0-or-later",
   "config": {
+    "httptoolkit-server-version": "1.0.2",
     "forge": "./electron-forge.config.js"
   },
   "dependencies": {
@@ -41,6 +42,7 @@
     "@types/node": "^12.12.14",
     "@types/node-fetch": "^2.1.4",
     "@types/rimraf": "^3.0.0",
+    "@types/semver": "^7.3.4",
     "@types/universal-analytics": "^0.4.3",
     "@types/uuid": "^3.4.6",
     "@types/yargs": "^15.0.3",
@@ -51,7 +53,6 @@
     "electron-forge": "^5.2.4",
     "electron-notarize": "^0.2.1",
     "electron-prebuilt-compile": "4.0.0",
-    "httptoolkit-server": "^1.0.2",
     "lodash": "^4.17.19",
     "node-fetch": "^2.6.1",
     "targz": "^1.0.1",

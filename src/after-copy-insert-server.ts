@@ -4,13 +4,13 @@ import * as path from 'path';
 import * as fs from 'fs';
 import fetch from 'node-fetch';
 
-const packageJsonLock = require('../package-lock.json');
+const packageJson = require('../package.json');
 
 const targz = require('targz');
 const extractTarGz = promisify(targz.decompress);
 const deleteFile = promisify(fs.unlink);
 
-const serverVersion: string = 'v' + packageJsonLock.dependencies['httptoolkit-server'].version;
+const serverVersion: string = 'v' + packageJson.config['httptoolkit-server-version'];
 
 /*
 * Download the correct server binary and include it in the build directly.
