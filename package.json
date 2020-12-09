@@ -9,7 +9,7 @@
     "build:src": "tsc",
     "start": "node setup-local.js && npm run start:app",
     "start:dev": "node setup-dev.js && cross-env APP_URL='http://local.httptoolkit.tech:8080' npm run start:app",
-    "start:app": "tsc-watch --onSuccess 'electron ./dist/index.js'",
+    "start:app": "tsc-watch --onSuccess 'electron .'",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish"

@@ -47,6 +47,11 @@ if (!semver.parse(BUNDLED_SERVER_VERSION)) {
     throw new Error("Package.json must specify an exact server version");
 }
 
+const APP_PATH = app.getAppPath();
+const RESOURCES_PATH = APP_PATH.endsWith('app.asar')
+    ? path.dirname(APP_PATH) // If we're bundled, resources are above the bundle
+    : APP_PATH; // Otherwise everything is in the root of the app
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let windows: Electron.BrowserWindow[] = [];
@@ -309,7 +314,7 @@ if (!amMainInstance) {
 
     async function startServer(retries = 2) {
         const binName = isWindows ? 'httptoolkit-server.cmd' : 'httptoolkit-server';
-        const serverBinPath = path.join(__dirname, '..', 'httptoolkit-server', 'bin', binName);
+        const serverBinPath = path.join(RESOURCES_PATH, 'httptoolkit-server', 'bin', binName);
         const serverBinCommand = isWindows ? `"${serverBinPath}"` : serverBinPath;
 
         server = spawn(serverBinCommand, ['start'], {
