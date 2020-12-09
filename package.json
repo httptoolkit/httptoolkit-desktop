@@ -69,7 +69,7 @@
         "StartupNotify": true
       }
     },
-    "afterSign": "./src/hooks/post-package.js"
+    "afterSign": "./src/hooks/after-sign.js"
   },
   "dependencies": {
     "@sentry/electron": "^0.17.1",
