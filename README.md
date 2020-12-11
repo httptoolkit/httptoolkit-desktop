@@ -1,4 +1,4 @@
-HTTP Toolkit Desktop [![Travis Build Status](https://img.shields.io/travis/httptoolkit/httptoolkit-desktop.svg)](https://travis-ci.org/httptoolkit/httptoolkit-desktop) [![Appveyor Build Status](https://ci.appveyor.com/api/projects/status/sfumuw6lm6qdpx7y?svg=true)](https://ci.appveyor.com/project/pimterry/httptoolkit-desktop)
+HTTP Toolkit Desktop [![Build Status](https://github.com/httptoolkit/httptoolkit-desktop/workflows/CI/badge.svg)](https://github.com/httptoolkit/httptoolkit-desktop/actions)
 ===================
 
 This repo contains the desktop build setup for [HTTP Toolkit](https://httptoolkit.tech), a beautiful, cross-platform & open-source HTTP(S) debugging proxy, analyzer & client.
