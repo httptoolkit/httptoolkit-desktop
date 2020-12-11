@@ -76,7 +76,6 @@ const createWindow = () => {
 
     const window = new BrowserWindow({
         title: 'HTTP Toolkit',
-        icon: path.join(__dirname, 'src', 'icon.png'),
         backgroundColor: '#d8e2e6',
 
         minWidth: 1024,

@@ -26,6 +26,7 @@
     "appId": "tech.httptoolkit.desktop",
     "extends": null,
     "productName": "HTTP Toolkit",
+    "extraMetadata": { "name": "httptoolkit" },
     "files": [
       "**/*",
       "build/**/*",
@@ -49,7 +50,7 @@
     ],
     "win": {
       "target": ["nsis"],
-      "icon": "./src/icon.ico",
+      "icon": "./src/icons/icon.ico",
       "forceCodeSigning": true
     },
     "linux": {
@@ -58,13 +59,11 @@
       ],
       "executableName": "httptoolkit",
       "category": "Development",
-      "icon": "src/icon.png",
+      "icon": "./src/icons/icon.svg",
       "maintainer": "contact@httptoolkit.tech",
       "desktop": {
         "Name": "HTTP Toolkit",
         "Comment": "HTTP(S) debugging, development & testing tool",
-        "Terminal": "false",
-        "Type": "Application",
         "Categories": "Development;Network",
         "StartupNotify": true
       }
