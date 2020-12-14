@@ -12,7 +12,7 @@ export = async function () {
 
     return notarize({
         appBundleId: 'tech.httptoolkit.desktop',
-        appPath: projectRoot + '/out/HTTP Toolkit-darwin-x64/HTTP Toolkit.app',
+        appPath: projectRoot + '/dist/mac/HTTP Toolkit.app',
         appleId: process.env.APPLE_ID!,
         appleIdPassword: process.env.APPLE_ID_PASSWORD!
     }).catch((e) => {

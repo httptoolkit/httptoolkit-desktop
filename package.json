@@ -26,7 +26,9 @@
     "appId": "tech.httptoolkit.desktop",
     "extends": null,
     "productName": "HTTP Toolkit",
-    "extraMetadata": { "name": "httptoolkit" },
+    "extraMetadata": {
+      "name": "httptoolkit"
+    },
     "files": [
       "**/*",
       "build/**/*",
@@ -48,8 +50,23 @@
     "extraResources": [
       "httptoolkit-server/**/*"
     ],
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.developer-tools",
+      "icon": "src/icons/icon.icns",
+      "entitlements": "src/entitlements.plist",
+      "entitlementsInherit": "src/entitlements.plist",
+      "forceCodeSigning": false
+    },
+    "dmg": {
+      "background": "src/dmg-background.png"
+    },
     "win": {
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "icon": "./src/icons/icon.ico",
       "forceCodeSigning": true
     },
@@ -101,7 +118,7 @@
     "electron": "^4.1.4",
     "electron-builder": "^22.9.1",
     "electron-forge": "^5.2.4",
-    "electron-notarize": "^0.2.1",
+    "electron-notarize": "^1.0.0",
     "lodash": "^4.17.19",
     "node-fetch": "^2.6.1",
     "targz": "^1.0.1",
