@@ -55,6 +55,7 @@
         "dmg",
         "zip"
       ],
+      "artifactName": "HttpToolkit-${os}-${arch}-${version}.${ext}",
       "category": "public.app-category.developer-tools",
       "icon": "src/icons/icon.icns",
       "entitlements": "src/entitlements.plist",
@@ -62,7 +63,8 @@
       "forceCodeSigning": false
     },
     "dmg": {
-      "background": "src/dmg-background.png"
+      "background": "src/dmg-background.png",
+      "artifactName": "HttpToolkit-${version}.dmg"
     },
     "win": {
       "target": [
@@ -70,8 +72,16 @@
         "portable",
         "zip"
       ],
+      "artifactName": "HttpToolkit-${os}-${arch}-${version}.${ext}",
       "icon": "./src/icons/icon.ico",
       "forceCodeSigning": true
+    },
+    "nsis": {
+      "installerIcon": "./src/icons/icon.ico",
+      "artifactName": "HttpToolkit-installer-${version}.exe"
+    },
+    "portable": {
+      "artifactName": "HttpToolkit-portable-${version}.exe"
     },
     "linux": {
       "target": [
@@ -81,6 +91,7 @@
         "zip"
       ],
       "executableName": "httptoolkit",
+      "artifactName": "HttpToolkit-${os}-${arch}-${version}.${ext}",
       "category": "Development",
       "icon": "./src/icons/icon.svg",
       "maintainer": "contact@httptoolkit.tech",
@@ -90,6 +101,15 @@
         "Categories": "Development;Network",
         "StartupNotify": true
       }
+    },
+    "deb": {
+      "artifactName": "HttpToolkit-${version}.deb"
+    },
+    "rpm": {
+      "artifactName": "HttpToolkit-${version}.rpm"
+    },
+    "appImage": {
+      "artifactName": "HttpToolkit-${version}.AppImage"
     },
     "afterSign": "./src/hooks/after-sign.js",
     "publish": null

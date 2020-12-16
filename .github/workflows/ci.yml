@@ -43,8 +43,5 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: distributables
-          path: |
-            dist/*.exe
-            dist/*.deb
-            dist/*.dmg
+          path: dist/HttpToolkit-*
           if-no-files-found: error
