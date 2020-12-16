@@ -52,7 +52,8 @@
     ],
     "mac": {
       "target": [
-        "dmg"
+        "dmg",
+        "zip"
       ],
       "category": "public.app-category.developer-tools",
       "icon": "src/icons/icon.icns",
@@ -65,14 +66,19 @@
     },
     "win": {
       "target": [
-        "nsis"
+        "nsis",
+        "portable",
+        "zip"
       ],
       "icon": "./src/icons/icon.ico",
       "forceCodeSigning": true
     },
     "linux": {
       "target": [
-        "deb"
+        "deb",
+        "rpm",
+        "AppImage",
+        "zip"
       ],
       "executableName": "httptoolkit",
       "category": "Development",
