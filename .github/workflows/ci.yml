@@ -49,6 +49,7 @@ jobs:
     name: Publish a release
     runs-on: "ubuntu-18.04"
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: build
     steps:
       - name: Get our distributables
         uses: actions/download-artifact@v2
