@@ -52,10 +52,8 @@
     ],
     "mac": {
       "target": [
-        "dmg",
-        "zip"
+        "dmg"
       ],
-      "artifactName": "HttpToolkit-${os}-${arch}-${version}.${ext}",
       "category": "public.app-category.developer-tools",
       "icon": "src/icons/icon.icns",
       "entitlements": "src/entitlements.plist",
@@ -69,7 +67,6 @@
     "win": {
       "target": [
         "nsis",
-        "portable",
         "zip"
       ],
       "artifactName": "HttpToolkit-${os}-${arch}-${version}.${ext}",
@@ -79,9 +76,6 @@
     "nsis": {
       "installerIcon": "./src/icons/icon.ico",
       "artifactName": "HttpToolkit-installer-${version}.exe"
-    },
-    "portable": {
-      "artifactName": "HttpToolkit-portable-${version}.exe"
     },
     "linux": {
       "target": [
