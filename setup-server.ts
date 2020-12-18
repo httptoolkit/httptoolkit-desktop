@@ -59,6 +59,10 @@ async function insertServer(
         'https://api.github.com/repos/httptoolkit/httptoolkit-server/releases',
         { headers }
     );
+    if (!response.ok) {
+        console.log(`${response.status} response, body: `, await response.text());
+        throw new Error(`Server releases request rejected with ${response.status}`);
+    }
 
     const releases = await response.json();
 
