@@ -61,7 +61,6 @@
       "forceCodeSigning": false
     },
     "dmg": {
-      "background": "src/dmg-background.png",
       "artifactName": "HttpToolkit-${version}.dmg"
     },
     "win": {
