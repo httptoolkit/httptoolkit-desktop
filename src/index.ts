@@ -281,7 +281,13 @@ if (!amMainInstance) {
         const serverUpdatesPath = process.env.OCLIF_CLIENT_HOME ||
             path.join(oclifDataPath, 'client');
 
-        const serverPaths = await fs.readdir(serverUpdatesPath);
+        const serverPaths = await fs.readdir(serverUpdatesPath)
+            // Don't error if this path doesn't exist - that's normal at first
+            .catch((e) => {
+                if (e.code === 'ENOENT') {
+                    return [] as string[];
+                } else throw e;
+            });
 
         if (serverPaths.some((filename) =>
             !semver.valid(filename.replace(/\.partial\.\d+$/, '')) &&
@@ -299,7 +305,7 @@ if (!amMainInstance) {
 
         // If the bundled server is newer than all installed server versions, then
         // delete all the installed server versions entirely before we start.
-        if (!serverPaths.some((serverPath) => {
+        if (serverPaths.length && !serverPaths.some((serverPath) => {
             try {
                 return semver.gt(serverPath, BUNDLED_SERVER_VERSION)
             } catch (e) {
