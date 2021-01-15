@@ -10,23 +10,23 @@ const menuTemplate: MenuItemConstructorOptions[] = [
             { role: 'cut', registerAccelerator: false },
             { role: 'copy', registerAccelerator: false },
             { role: 'paste', registerAccelerator: false },
-            { role: 'pasteandmatchstyle', registerAccelerator: false },
+            { role: 'pasteAndMatchStyle', registerAccelerator: false },
             { role: 'delete' },
-            { role: 'selectall' }
+            { role: 'selectAll' }
         ]
     },
     {
         label: '&View',
         submenu: [
-            { role: 'resetzoom' },
-            { role: 'zoomin' },
-            { role: 'zoomout' },
+            { role: 'resetZoom' },
+            { role: 'zoomIn' },
+            { role: 'zoomOut' },
             { type: 'separator' },
             { role: 'togglefullscreen' },
             { type: 'separator' },
             { role: 'reload' },
-            { role: 'forcereload' },
-            { role: 'toggledevtools' },
+            { role: 'forceReload' },
+            { role: 'toggleDevTools' },
         ]
     },
     {
@@ -50,7 +50,7 @@ const menuTemplate: MenuItemConstructorOptions[] = [
 ];
 
 if (process.platform === 'darwin') {
-    menuTemplate.unshift({
+    const macMenu: MenuItemConstructorOptions = {
         label: app.getName(),
         submenu: [
             { role: 'about' },
@@ -58,21 +58,22 @@ if (process.platform === 'darwin') {
             { role: 'services' },
             { type: 'separator' },
             { role: 'hide' },
-            { role: 'hideothers' },
+            { role: 'hideOthers' },
             { role: 'unhide' },
             { type: 'separator' },
             { role: 'quit' }
         ]
-    });
+    };
+    menuTemplate.unshift(macMenu);
 
-    // Edit menu
+    // Add to Edit menu
     (menuTemplate[1].submenu as MenuItemConstructorOptions[]).push(
         { type: 'separator' },
         {
             label: 'Speech',
             submenu: [
-                { role: 'startspeaking' },
-                { role: 'stopspeaking' }
+                { role: 'startSpeaking' },
+                { role: 'stopSpeaking' }
             ]
         }
     );
@@ -101,28 +102,4 @@ if (process.platform === 'darwin') {
     });
 }
 
-// Mutate menu templates to fix https://github.com/electron/electron/issues/16303
-// by forcibly defaulting registerAccelerator to true on role menu items.
-function fixAccelerators(menuTemplates: MenuItemConstructorOptions[]): MenuItemConstructorOptions[] {
-    return menuTemplates.map((template) => {
-        if (template.role && !template.hasOwnProperty('registerAccelerator')) {
-            template.registerAccelerator = true;
-        }
-
-        const { submenu } = template;
-
-        if (submenu) {
-            if (Array.isArray(submenu)) {
-                template.submenu = fixAccelerators(submenu);
-            } else {
-                template.submenu = fixAccelerators([submenu as MenuItemConstructorOptions]);
-            }
-        }
-
-        return template;
-    });
-}
-
-export const menu = Menu.buildFromTemplate(
-    fixAccelerators(menuTemplate)
-);
+export const menu = Menu.buildFromTemplate(menuTemplate);
