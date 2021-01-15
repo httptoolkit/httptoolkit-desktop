@@ -27,7 +27,8 @@
     "extends": null,
     "productName": "HTTP Toolkit",
     "extraMetadata": {
-      "name": "httptoolkit"
+      "name": "httptoolkit",
+      "productName": "httptoolkit"
     },
     "files": [
       "**/*",
