@@ -19,13 +19,13 @@ This repo builds a single executable that:
     * Opens the UI in an [Electron](https://electronjs.org/) window
     * Kills the server when closed
 
-This means this is mostly Electron configuration & setup, and build configuration for the executable and various installers. It's built using [Electron Forge](https://docs.electronforge.io/).
+This means this is mostly Electron configuration & setup, and build configuration for the executable and various installers. It's built using [Electron Builder](https://electron.build/).
 
 This isn't the only way to run HTTP Toolkit! It's the most convenient option for most users, but it's also completely possible to run the server as a standalone tool and open the UI (hosted at https://app.httptoolkit.tech) in any browser you'd like.
 
 Note that the resulting executable _doesn't_ autoupdate (at the moment). Instead both the server (as an [oclif](http://oclif.io) app) and the web UI (via service workers) include their own auto-update functionality.
 
-The builds themselves are done on Travis (for Linux & OSX) and Appveyor (for Windows), and tagged master builds are automatically published from there, as [github releases](https://github.com/httptoolkit/httptoolkit-desktop/releases).
+The builds themselves are done on GitHub Actions, and tagged master builds are automatically published from there as [github releases](https://github.com/httptoolkit/httptoolkit-desktop/releases).
 
 ## Contributing
 
@@ -48,6 +48,6 @@ To get started:
 A few tips:
 
 * Electron dev behaviour isn't identical to production build behaviour, make sure you check your changes in a real built version.
-* Most distributable build configuration is in [`electron-forge.config.js`](./electron-forge.config.js)
-* To build packages, you may find some platforms complain about that signing certificates are required, you'll probably need to delete keys (e.g. `osxSign` or `certificateFile`) to disable that.
-* In CI, pull requests don't receive secret environment variables, so will likely fail. Confirm that that's what's happening, and if so that's ok - the team will manually build & evaluate PR changes to resolve this.
+* Most distributable build configuration is in under the `build` field in [`package.json`](./package.json).
+ * To fully build packages, you may find some platforms complain about that signing certificates are required. You'll probably need to unset fields like `forceCodeSigning` to disable that.
+* In CI, pull requests don't receive secret environment variables, so builds may fail. Confirm that that's what's happening, and if so that's ok - the team will manually build & evaluate PR changes to resolve this.
