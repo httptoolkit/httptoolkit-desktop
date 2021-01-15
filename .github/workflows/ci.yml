@@ -5,11 +5,13 @@ jobs:
     name: Build & test
     strategy:
       matrix:
-        os: [
-          "ubuntu-18.04",
-          "windows-2019",
-          "macos-10.15"
-        ]
+        include:
+          - platform: linux
+            os: "ubuntu-18.04"
+          - platform: windows
+            os: "windows-2019"
+          - platform: mac
+            os: "macos-10.15"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -43,7 +45,7 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: distributables
+          name: ${{ matrix.platform }}-distributables
           path: dist/HttpToolkit-*
           if-no-files-found: error
   publish:
@@ -52,11 +54,8 @@ jobs:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     needs: build
     steps:
-      - name: Get our distributables
+      - name: Get all distributables
         uses: actions/download-artifact@v2
-        with:
-          name: distributables
-          path: built-distributables
 
       - name: Create Release
         id: create_release
@@ -76,4 +75,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           release_id: ${{ steps.create_release.outputs.id }}
-          assets_path: ./built-distributables/
+          assets_path: ./*/
