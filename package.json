@@ -120,7 +120,6 @@
     "yargs": "^15.1.0"
   },
   "devDependencies": {
-    "@types/electron-devtools-installer": "^2.0.2",
     "@types/electron-window-state": "^2.0.33",
     "@types/lodash": "^4.14.149",
     "@types/node": "^12.12.14",
@@ -136,7 +135,6 @@
     "cross-env": "^7.0.3",
     "electron": "^4.1.4",
     "electron-builder": "^22.9.1",
-    "electron-forge": "^5.2.4",
     "electron-notarize": "^1.0.0",
     "lodash": "^4.17.19",
     "node-fetch": "^2.6.1",
