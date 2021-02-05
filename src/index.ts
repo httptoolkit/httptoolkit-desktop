@@ -32,6 +32,7 @@ registerContextMenu({
 
 import { reportStartupEvents } from './report-install-event';
 import { menu } from './menu';
+import { getDeferred } from './util';
 
 const rmRF = promisify(rimraf);
 
@@ -141,18 +142,6 @@ if (!amMainInstance) {
         process.exit(1); // Safe to hard exit - we haven't opened/started anything yet.
     }
 
-    app.on('ready', () => {
-        Menu.setApplicationMenu(menu);
-    });
-
-    app.on('window-all-closed', () => {
-        // On OS X it is common for applications and their menu bar
-        // to stay active until the user quits explicitly with Cmd + Q
-        if (process.platform !== 'darwin') {
-            app.quit();
-        }
-    });
-
     let serverKilled = false;
     app.on('will-quit', (event) => {
         if (server && !serverKilled) {
@@ -183,14 +172,6 @@ if (!amMainInstance) {
                 console.log('Failed to kill server', error);
                 reportError(error);
             }
-        }
-    });
-
-    app.on('activate', () => {
-        // On OS X it's common to re-create a window in the app when the
-        // dock icon is clicked and there are no other windows open.
-        if (windows.length === 0) {
-            createWindow();
         }
     });
 
@@ -400,8 +381,9 @@ if (!amMainInstance) {
     reportStartupEvents();
 
     cleanupOldServers().catch(console.log)
-    .then(() => startServer())
-    .catch((err) => {
+    .then(() =>
+        startServer()
+    ).catch((err) => {
         console.error('Failed to start server, exiting.', err);
 
         // Hide immediately, shutdown entirely after a brief pause for Sentry
@@ -409,8 +391,37 @@ if (!amMainInstance) {
         setTimeout(() => process.exit(1), 500);
     });
 
-    app.on('ready', () => createWindow());
+    // Use a promise to organize events around 'ready', and ensure they never
+    // fire before, as Electron will refuse to do various things if they do.
+    const appReady = getDeferred();
+    app.on('ready', () => appReady.resolve());
+
+    appReady.promise.then(() => {
+        Menu.setApplicationMenu(menu);
+        createWindow();
+    });
+
     // We use a single process instance to manage the server, but we
     // do allow multiple windows.
-    app.on('second-instance', () => createWindow());
+    app.on('second-instance', () =>
+        appReady.promise.then(() => createWindow())
+    );
+
+    app.on('activate', () => {
+        // On OS X it's common to re-create a window in the app when the
+        // dock icon is clicked and there are no other windows open.
+        if (windows.length === 0) {
+            // Wait until the ready event - it's possible that this can fire
+            // before the app is ready (not sure how) in which case things break!
+            appReady.promise.then(() => createWindow());
+        }
+    });
+
+    app.on('window-all-closed', () => {
+        // On OS X it is common for applications and their menu bar
+        // to stay active until the user quits explicitly with Cmd + Q
+        if (process.platform !== 'darwin') {
+            app.quit();
+        }
+    });
 }
