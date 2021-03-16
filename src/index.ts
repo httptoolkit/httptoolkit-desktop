@@ -230,7 +230,14 @@ if (!amMainInstance) {
     }
 
     function handleExternalNavigation(url: URL) {
-        shell.openExternal(url.toString());
+        shell.openExternal(url.toString())
+            .catch((error) => {
+                showErrorAlert(
+                    "Failed to open URL",
+                    `HTTP Toolkit could not open ${url.toString()} in your browser, because: ${error?.message ?? error ?? 'unknown error'}`
+                );
+                throw error;
+            });
     }
 
     function showErrorAlert(title: string, body: string) {
