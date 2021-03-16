@@ -202,24 +202,36 @@ if (!amMainInstance) {
         });
 
         // Redirect all navigations & new windows to the system browser
-        contents.on('will-navigate', (event, navigationUrl) => {
-            const parsedUrl = new URL(navigationUrl);
-
-            if (parsedUrl.origin !== APP_URL) {
-                event.preventDefault();
-                shell.openExternal(navigationUrl);
-            }
-        });
-
-        contents.on('new-window', (event, navigationUrl) => {
-            const parsedUrl = new URL(navigationUrl);
-
-            if (parsedUrl.origin !== APP_URL) {
-                event.preventDefault();
-                shell.openExternal(navigationUrl);
-            }
-        });
+        contents.on('will-navigate', handleNavigation);
+        contents.on('new-window', handleNavigation);
     });
+
+    function handleNavigation(event: Electron.Event, navigationUrl: string) {
+        const parsedUrl = new URL(navigationUrl);
+
+        checkForUnsafeNavigation(parsedUrl);
+
+        if (!isLocalNavigation(parsedUrl)) {
+            event.preventDefault();
+            handleExternalNavigation(parsedUrl);
+        }
+    }
+
+    function checkForUnsafeNavigation(url: URL) {
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+            // This suggests an attempted XSS attack of some sort, report it:
+            const error = new Error(`Attempt to open a dangerous non-HTTP url: ${url}`);
+            throw error;
+        }
+    }
+
+    function isLocalNavigation(url: URL) {
+        return url.origin === APP_URL;
+    }
+
+    function handleExternalNavigation(url: URL) {
+        shell.openExternal(url.toString());
+    }
 
     function showErrorAlert(title: string, body: string) {
         console.warn(`${title}: ${body}`);
