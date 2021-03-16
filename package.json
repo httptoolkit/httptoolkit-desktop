@@ -134,7 +134,7 @@
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-preset-env": "^1.7.0",
     "cross-env": "^7.0.3",
-    "electron": "^11.1.1",
+    "electron": "^11.3.0",
     "electron-builder": "^22.9.1",
     "electron-notarize": "^1.0.0",
     "lodash": "^4.17.19",
