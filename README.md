@@ -51,3 +51,12 @@ A few tips:
 * Most distributable build configuration is in under the `build` field in [`package.json`](./package.json).
  * To fully build packages, you may find some platforms complain about that signing certificates are required. You'll probably need to unset fields like `forceCodeSigning` to disable that.
 * In CI, pull requests don't receive secret environment variables, so builds may fail. Confirm that that's what's happening, and if so that's ok - the team will manually build & evaluate PR changes to resolve this.
+
+## License
+
+The HTTP Toolkit desktop application source code is licensed under AGPL-3.0, [as documented in this repo](/LICENSE).
+
+The binary downloads available in this repo or from [httptoolkit.tech](https://httptoolkit.tech) however may be used under one of two licenses: 
+
+* [AGPL-3.0](/LICENSE), for those who want to modify and redistribute them, within the constraints of that license.
+* [Creative Commons Attribution-NoDerivatives 4.0 International License](https://creativecommons.org/licenses/by-nd/4.0/) for those who don't need those rights and want to avoid any concerns about AGPL licensing.
