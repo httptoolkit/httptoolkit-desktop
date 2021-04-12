@@ -15,6 +15,7 @@ function reportError(error: Error | string) {
 import { spawn, exec, ChildProcess } from 'child_process';
 import * as os from 'os';
 import { promises as fs } from 'fs'
+import * as net from 'net';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as querystring from 'querystring';
@@ -311,6 +312,28 @@ if (!amMainInstance) {
         }
     }
 
+    // When run *before* the server starts, this allows us to check whether the port is already in use,
+    // so we can provide clear setup instructions and avoid confusing errors later.
+    function checkServerPortAvailable(host: string, port: number): Promise<void> {
+        const conn = net.connect({ host, port });
+
+        return Promise.race([
+            new Promise<void>((resolve, reject) => {
+                // If we can already connect to the local port, then it's not available for our server:
+                conn.on('connect', () =>
+                    reject(new Error(`Port ${port} is already in use`))
+                );
+                // If we fail to connect to the port, it's probably available:
+                conn.on('error', resolve);
+            }),
+            // After 100 ms with no connection, assume the port is available:
+            new Promise<void>((resolve) => setTimeout(resolve, 100))
+        ])
+        .finally(() => {
+            conn.destroy();
+        });
+    }
+
     async function startServer(retries = 2) {
         const binName = isWindows ? 'httptoolkit-server.cmd' : 'httptoolkit-server';
         const serverBinPath = path.join(RESOURCES_PATH, 'httptoolkit-server', 'bin', binName);
@@ -399,23 +422,40 @@ if (!amMainInstance) {
 
     reportStartupEvents();
 
-    cleanupOldServers().catch(console.log)
-    .then(() =>
+    // Use a promise to organize events around 'ready', and ensure they never
+    // fire before, as Electron will refuse to do various things if they do.
+    const appReady = getDeferred();
+    app.on('ready', () => appReady.resolve());
+
+    const portCheck = checkServerPortAvailable('127.0.0.1', 45457)
+        .catch(async () => {
+            await appReady.promise;
+
+            showErrorAlert(
+                "HTTP Toolkit could not start",
+                "HTTP Toolkit's local management port (45457) is already in use.\n\n" +
+                "Do you have another HTTP Toolkit process running somewhere?\n" +
+                "Please close the other process using this port, and try again.\n\n" +
+                "(Having trouble? File an issue at github.com/httptoolkit/httptoolkit)"
+            );
+
+            process.exit(2);
+        });
+
+    Promise.all([
+        cleanupOldServers().catch(console.log),
+        portCheck
+    ]).then(() =>
         startServer()
     ).catch((err) => {
         console.error('Failed to start server, exiting.', err);
 
         // Hide immediately, shutdown entirely after a brief pause for Sentry
         windows.forEach(window => window.hide());
-        setTimeout(() => process.exit(1), 500);
+        setTimeout(() => process.exit(3), 500);
     });
 
-    // Use a promise to organize events around 'ready', and ensure they never
-    // fire before, as Electron will refuse to do various things if they do.
-    const appReady = getDeferred();
-    app.on('ready', () => appReady.resolve());
-
-    appReady.promise.then(() => {
+    Promise.all([appReady.promise, portCheck]).then(() => {
         Menu.setApplicationMenu(menu);
         createWindow();
     });
