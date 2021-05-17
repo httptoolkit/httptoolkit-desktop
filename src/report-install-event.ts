@@ -9,6 +9,7 @@ is sent, it's only used to get an idea of real world app usage.
 
 export function reportStartupEvents() {
     const analytics = setupUA('UA-117670723-2');
+    analytics.set("anonymizeIp", true);
 
     if (isFirstRun()) {
         analytics.event('Setup', 'First run', process.platform).send();
