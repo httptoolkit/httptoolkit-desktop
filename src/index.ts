@@ -205,6 +205,16 @@ if (!amMainInstance) {
         // Redirect all navigations & new windows to the system browser
         contents.on('will-navigate', handleNavigation);
         contents.on('new-window', handleNavigation);
+
+        contents.on('render-process-gone', (_event, details) => {
+            if (details.reason === 'clean-exit') return;
+
+            reportError(`Renderer gone: ${details.reason}`);
+            showErrorAlert(
+                "UI crashed",
+                "The HTTP Toolkit UI stopped unexpected.\n\nPlease file an issue at github.com/httptoolkit/httptoolkit."
+            );
+        });
     });
 
     function handleNavigation(event: Electron.Event, navigationUrl: string) {
