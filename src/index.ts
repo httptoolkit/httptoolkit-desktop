@@ -167,7 +167,7 @@ if (!amMainInstance) {
                 } else {
                     // Make sure we clean up the whole group (shell + node).
                     // https://azimi.me/2014/12/31/kill-child_process-node-js.html
-                    process.kill(-server.pid);
+                    process.kill(-server.pid!);
                 }
             } catch (error) {
                 console.log('Failed to kill server', error);

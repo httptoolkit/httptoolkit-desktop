@@ -109,13 +109,12 @@
     "publish": null
   },
   "dependencies": {
-    "@sentry/electron": "^2.1.0",
+    "@sentry/electron": "^2.4.1",
     "electron-context-menu": "^0.15.1",
     "electron-first-run": "^3.0.0",
     "electron-window-state": "^5.0.3",
     "rimraf": "^2.7.1",
     "semver": "^7.2.1",
-    "tslib": "^1.10.0",
     "universal-analytics": "^0.4.20",
     "uuid": "^3.3.3",
     "yargs": "^15.1.0"
@@ -123,7 +122,7 @@
   "devDependencies": {
     "@types/electron-window-state": "^2.0.33",
     "@types/lodash": "^4.14.149",
-    "@types/node": "^12.12.14",
+    "@types/node": "^15.12.0",
     "@types/node-fetch": "^2.1.4",
     "@types/rimraf": "^3.0.0",
     "@types/semver": "^7.3.4",
@@ -134,7 +133,7 @@
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-preset-env": "^1.7.0",
     "cross-env": "^7.0.3",
-    "electron": "^11.3.0",
+    "electron": "^13.1.0",
     "electron-builder": "^22.9.1",
     "electron-notarize": "^1.0.0",
     "lodash": "^4.17.21",
