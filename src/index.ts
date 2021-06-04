@@ -41,6 +41,7 @@ const packageJson = require('../package.json');
 
 const isWindows = os.platform() === 'win32';
 
+const DEV_MODE = process.env.HTK_DEV === 'true';
 const APP_URL = process.env.APP_URL || 'https://app.httptoolkit.tech';
 const AUTH_TOKEN = uuid();
 const DESKTOP_VERSION = packageJson.version;
@@ -439,6 +440,7 @@ if (!amMainInstance) {
 
     const portCheck = checkServerPortAvailable('127.0.0.1', 45457)
         .catch(async () => {
+            if (DEV_MODE) return; // In full dev mode this is OK & expected
             await appReady.promise;
 
             showErrorAlert(
