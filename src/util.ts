@@ -19,3 +19,5 @@ export function getDeferred<T = void>(): Deferred<T> {
     // we need the undefined types, and the any here.
     return { resolve, reject, promise } as any;
 }
+
+export const delay = (delayMs: number) => new Promise<void>((resolve) => setTimeout(resolve, delayMs));

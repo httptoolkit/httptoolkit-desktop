@@ -113,6 +113,7 @@
     "electron-context-menu": "^0.15.1",
     "electron-first-run": "^3.0.0",
     "electron-window-state": "^5.0.3",
+    "os-proxy-config": "^1.0.0",
     "rimraf": "^2.7.1",
     "semver": "^7.2.1",
     "universal-analytics": "^0.4.20",

@@ -19,12 +19,14 @@ import * as net from 'net';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as querystring from 'querystring';
-import { app, BrowserWindow, shell, Menu, dialog } from 'electron';
+import { URL } from 'url';
+import { app, BrowserWindow, shell, Menu, dialog, session } from 'electron';
 import * as uuid from 'uuid/v4';
 import * as yargs from 'yargs';
 import * as semver from 'semver';
 import * as rimraf from 'rimraf';
 import * as windowStateKeeper from 'electron-window-state';
+import { getSystemProxy } from 'os-proxy-config';
 
 import registerContextMenu = require('electron-context-menu');
 registerContextMenu({
@@ -33,7 +35,7 @@ registerContextMenu({
 
 import { reportStartupEvents } from './report-install-event';
 import { menu } from './menu';
-import { getDeferred } from './util';
+import { getDeferred, delay } from './util';
 
 const rmRF = promisify(rimraf);
 
@@ -64,11 +66,6 @@ let server: ChildProcess | null = null;
 app.commandLine.appendSwitch('ignore-connections-limit', 'app.httptoolkit.tech');
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
 app.commandLine.appendSwitch('js-flags', '--expose-gc'); // Expose window.gc in the UI
-
-// Don't send our own traffic through the system proxy! Doing so causes issues when
-// we ourselves are the system proxy, and it gets super noisey.
-['http_proxy', 'HTTP_PROXY', 'https_proxy', 'HTTPS_PROXY'].forEach((v) => delete process.env[v]);
-app.commandLine.appendSwitch('no-proxy-server');
 
 const createWindow = () => {
     // Load the previous window state, falling back to defaults
@@ -338,7 +335,7 @@ if (!amMainInstance) {
                 conn.on('error', resolve);
             }),
             // After 100 ms with no connection, assume the port is available:
-            new Promise<void>((resolve) => setTimeout(resolve, 100))
+            delay(100)
         ])
         .finally(() => {
             conn.destroy();
@@ -453,6 +450,56 @@ if (!amMainInstance) {
 
             process.exit(2);
         });
+
+    // Check we're happy using the default proxy settings: true if so, false if not.
+    const proxyCheck = getSystemProxy()
+        .then((proxyConfig) => {
+            // If there's no proxy then the default settings are totally fine:
+            if (!proxyConfig) return true;
+
+            // If the proxy is local, don't use it (this probably means HTTP Toolkit itself is the
+            // system proxy, which causes lots of problems - we avoid in that case).
+            const proxyHostname = new URL(proxyConfig.proxyUrl).hostname;
+            if (proxyHostname === 'localhost' || proxyHostname.startsWith('127.0.0')) return false;
+
+            // Otherwise: we have a valid remote proxy server. We should use it - it might be
+            // required for us to get any connectivity at all.
+            return true;
+        });
+
+    proxyCheck.then((shouldUseProxy) => {
+        if (!shouldUseProxy) {
+            console.warn("Ignoring localhost system proxy setting");
+
+            // If the proxy is unsuitable (there is none, or its localhost and so might be a loop) then
+            // we drop all proxy config and try to connect to everything directly instead.
+
+            // This tries to avoid passing bad config through to the server. Nice to do but not critical,
+            // since upstream (i.e. everything except updates & error reports) is configured by the UI.
+            ['http_proxy', 'HTTP_PROXY', 'https_proxy', 'HTTPS_PROXY'].forEach((v) => delete process.env[v]);
+
+            if (app.isReady()) {
+                // If the app has already started at this point, things get more messy.
+
+                // First, we change the default session to avoid the proxy:
+                session.defaultSession.setProxy({ mode: 'direct' });
+
+                // Then we have to reset any existing windows, so that they avoid the proxy. They're
+                // probably broken anyway at this stage.
+                windows.forEach(window => {
+                    const { session } = window.webContents;
+                    session.closeAllConnections()
+                    session.setProxy({ mode: 'direct' });
+                    window.reload();
+                });
+            } else {
+                // If the app hasn't started yet it's easy: we disable Chromium's proxy detection entirely
+                app.commandLine.appendSwitch('no-proxy-server');
+            }
+
+        }
+        // Otherwise we just let Electron use the defaults - no problem at all.
+    });
 
     Promise.all([
         cleanupOldServers().catch(console.log),
