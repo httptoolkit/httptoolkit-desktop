@@ -457,8 +457,12 @@ if (!amMainInstance) {
 
     // Check we're happy using the default proxy settings: true if so, false if not.
     const proxyCheck = getSystemProxy()
+        .catch((e) => {
+            reportError(e);
+            return undefined;
+        })
         .then((proxyConfig) => {
-            // If there's no proxy then the default settings are totally fine:
+            // If there's no proxy then using the default settings is totally fine:
             if (!proxyConfig) return true;
 
             // If the proxy is local, don't use it (this probably means HTTP Toolkit itself is the
