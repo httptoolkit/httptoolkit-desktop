@@ -212,6 +212,10 @@ if (!amMainInstance) {
                 "UI crashed",
                 "The HTTP Toolkit UI stopped unexpected.\n\nPlease file an issue at github.com/httptoolkit/httptoolkit."
             );
+
+            setImmediate(() => {
+                contents.reload();
+            });
         });
     });
 
