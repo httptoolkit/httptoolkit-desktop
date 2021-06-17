@@ -1,6 +1,25 @@
-import * as Sentry from '@sentry/electron';
+const DEV_MODE = process.env.HTK_DEV === 'true';
 
-Sentry.init({ dsn: 'https://1194b128453942ed9470d49a74c35992@o202389.ingest.sentry.io/1367048' });
+import * as Sentry from '@sentry/electron';
+import { RewriteFrames } from '@sentry/integrations';
+
+if (!DEV_MODE) {
+    Sentry.init({
+        dsn: 'https://1194b128453942ed9470d49a74c35992@o202389.ingest.sentry.io/1367048',
+        integrations: [
+            new RewriteFrames({
+                // Make all paths relative to this root, because otherwise it can make
+                // errors unnecessarily distinct, especially on Windows.
+                root: process.platform === 'win32'
+                    // Root must always be POSIX format, so we transform it on Windows:
+                    ? __dirname
+                        .replace(/^[A-Z]:/, '') // remove Windows-style prefix
+                        .replace(/\\/g, '/') // replace all `\\` instances with `/`
+                    :  __dirname
+            })
+        ]
+    });
+}
 
 function reportError(error: Error | string) {
     console.log(error);
@@ -43,7 +62,6 @@ const packageJson = require('../package.json');
 
 const isWindows = os.platform() === 'win32';
 
-const DEV_MODE = process.env.HTK_DEV === 'true';
 const APP_URL = process.env.APP_URL || 'https://app.httptoolkit.tech';
 const AUTH_TOKEN = uuid();
 const DESKTOP_VERSION = packageJson.version;
