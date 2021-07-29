@@ -1,4 +1,5 @@
 import { app, Menu, MenuItemConstructorOptions } from 'electron';
+import { autoHideMenuBar } from "./index"
 
 const menuTemplate: MenuItemConstructorOptions[] = [
     {
@@ -27,6 +28,9 @@ const menuTemplate: MenuItemConstructorOptions[] = [
             { role: 'reload' },
             { role: 'forceReload' },
             { role: 'toggleDevTools' },
+            { type: 'checkbox', 'label': 'Toggle Menu Bar', click(event) {
+                autoHideMenuBar(event.checked || false)
+            }}
         ]
     },
     {

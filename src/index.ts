@@ -46,6 +46,7 @@ import * as semver from 'semver';
 import * as rimraf from 'rimraf';
 import * as windowStateKeeper from 'electron-window-state';
 import { getSystemProxy } from 'os-proxy-config';
+import * as ElectronStore from 'electron-store'
 
 import registerContextMenu = require('electron-context-menu');
 registerContextMenu({
@@ -56,6 +57,7 @@ import { reportStartupEvents } from './report-install-event';
 import { menu } from './menu';
 import { getDeferred, delay } from './util';
 
+const store = new ElectronStore();
 const rmRF = promisify(rimraf);
 
 const packageJson = require('../package.json');
@@ -112,6 +114,12 @@ const createWindow = () => {
 
         show: false
     });
+
+    if (store.get("autoHideMenuBar")) {
+        window.setAutoHideMenuBar(true);
+        window.setMenuBarVisibility(false);
+    }
+
     windows.push(window);
 
     windowState.manage(window);
@@ -566,4 +574,12 @@ if (!amMainInstance) {
             app.quit();
         }
     });
+}
+
+export function autoHideMenuBar(status: boolean){
+    windows.forEach((window) => {
+        window.setAutoHideMenuBar(status);
+        window.setMenuBarVisibility(!status);
+    });
+    store.set({ autoHideMenuBar: status });
 }
