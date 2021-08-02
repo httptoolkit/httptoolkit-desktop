@@ -113,6 +113,7 @@
     "@sentry/integrations": "^6.7.1",
     "electron-context-menu": "^0.15.1",
     "electron-first-run": "^3.0.0",
+    "electron-store": "^8.0.0",
     "electron-window-state": "^5.0.3",
     "os-proxy-config": "^1.1.1",
     "rimraf": "^2.7.1",

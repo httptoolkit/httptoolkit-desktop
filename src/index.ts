@@ -53,7 +53,7 @@ registerContextMenu({
 });
 
 import { reportStartupEvents } from './report-install-event';
-import { menu } from './menu';
+import { getMenu, shouldAutoHideMenu } from './menu';
 import { getDeferred, delay } from './util';
 
 const rmRF = promisify(rimraf);
@@ -112,6 +112,12 @@ const createWindow = () => {
 
         show: false
     });
+
+    if (shouldAutoHideMenu()) {
+        window.setAutoHideMenuBar(true);
+        window.setMenuBarVisibility(false);
+    }
+
     windows.push(window);
 
     windowState.manage(window);
@@ -539,7 +545,7 @@ if (!amMainInstance) {
     });
 
     Promise.all([appReady.promise, portCheck]).then(() => {
-        Menu.setApplicationMenu(menu);
+        Menu.setApplicationMenu(getMenu(windows));
         createWindow();
     });
 
