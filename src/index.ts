@@ -1,37 +1,9 @@
 const DEV_MODE = process.env.HTK_DEV === 'true';
 
-import * as Sentry from '@sentry/electron';
-import { RewriteFrames } from '@sentry/integrations';
+// Set up error handling before everything else:
+import { reportError, addBreadcrumb } from './errors';
 
-if (!DEV_MODE) {
-    Sentry.init({
-        dsn: 'https://1194b128453942ed9470d49a74c35992@o202389.ingest.sentry.io/1367048',
-        integrations: [
-            new RewriteFrames({
-                // Make all paths relative to this root, because otherwise it can make
-                // errors unnecessarily distinct, especially on Windows.
-                root: process.platform === 'win32'
-                    // Root must always be POSIX format, so we transform it on Windows:
-                    ? __dirname
-                        .replace(/^[A-Z]:/, '') // remove Windows-style prefix
-                        .replace(/\\/g, '/') // replace all `\\` instances with `/`
-                    :  __dirname
-            })
-        ]
-    });
-}
-
-function reportError(error: Error | string) {
-    console.log(error);
-
-    if (typeof error === 'string') {
-        Sentry.captureMessage(error);
-    } else {
-        Sentry.captureException(error);
-    }
-}
-
-import { spawn, exec, ChildProcess } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 import * as os from 'os';
 import { promises as fs } from 'fs'
 import * as net from 'net';
@@ -44,6 +16,7 @@ import * as uuid from 'uuid/v4';
 import * as yargs from 'yargs';
 import * as semver from 'semver';
 import * as rimraf from 'rimraf';
+const rmRF = promisify(rimraf);
 import * as windowStateKeeper from 'electron-window-state';
 import { getSystemProxy } from 'os-proxy-config';
 
@@ -55,8 +28,7 @@ registerContextMenu({
 import { reportStartupEvents } from './report-install-event';
 import { getMenu, shouldAutoHideMenu } from './menu';
 import { getDeferred, delay } from './util';
-
-const rmRF = promisify(rimraf);
+import { stopServer } from './stop-server';
 
 const packageJson = require('../package.json');
 
@@ -166,34 +138,21 @@ if (!amMainInstance) {
     }
 
     let serverKilled = false;
-    app.on('will-quit', (event) => {
+    app.on('will-quit', async (event) => {
         if (server && !serverKilled) {
+            // Don't shutdown until we've tried to kill the server
+            event.preventDefault();
+
             serverKilled = true;
+
             try {
-                if (isWindows) {
-                    // Don't shutdown until we've tried to kill the server
-                    event.preventDefault();
-
-                    // Forcefully kill the pid (the cmd) and child processes
-                    exec(`taskkill /pid ${server.pid} /T /F`, (error, stdout, stderr) => {
-                        if (error) {
-                            console.log(stdout);
-                            console.log(stderr);
-                            reportError(error);
-                        }
-
-                        // We've done our best - now shut down for real. Disable errors, otherwise
-                        // we can receive reports for invisible errors during/just after exit.
-                        app.quit();
-                    });
-                } else {
-                    // Make sure we clean up the whole group (shell + node).
-                    // https://azimi.me/2014/12/31/kill-child_process-node-js.html
-                    process.kill(-server.pid!);
-                }
+                await stopServer(server, AUTH_TOKEN);
+                // We've done our best - now shut down for real.
+                app.quit();
             } catch (error) {
                 console.log('Failed to kill server', error);
                 reportError(error);
+                app.quit();
             }
         }
     });
@@ -398,13 +357,13 @@ if (!amMainInstance) {
         stderr.pipe(process.stderr);
 
         server.stdout!.on('data', (data) => {
-            Sentry.addBreadcrumb({ category: 'server-stdout', message: data.toString('utf8'), level: <any>'info' });
+            addBreadcrumb({ category: 'server-stdout', message: data.toString('utf8'), level: <any>'info' });
         });
 
         let lastError: string | undefined = undefined;
         stderr.on('data', (data) => {
             const errorOutput = data.toString('utf8');
-            Sentry.addBreadcrumb({ category: 'server-stderr', message: errorOutput, level: <any>'warning' });
+            addBreadcrumb({ category: 'server-stderr', message: errorOutput, level: <any>'warning' });
 
             // Remember the last '*Error:' line we saw.
             lastError = errorOutput
@@ -434,7 +393,7 @@ if (!amMainInstance) {
                 error = new Error(`Server shutdown unexpectedly with code ${errorOrCode}`);
             }
 
-            Sentry.addBreadcrumb({ category: 'server-exit', message: error.message, level: <any>'error', data: { serverRunTime } });
+            addBreadcrumb({ category: 'server-exit', message: error.message, level: <any>'error', data: { serverRunTime } });
             reportError(error);
 
             showErrorAlert(
@@ -480,7 +439,8 @@ if (!amMainInstance) {
         });
 
     // Check we're happy using the default proxy settings
-    getSystemProxy().then((proxyConfig) => {
+    getSystemProxy()
+        .then((proxyConfig) => {
             let shouldDisableProxy = false;
 
             if (proxyConfig) {
