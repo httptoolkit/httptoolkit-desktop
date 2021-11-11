@@ -78,8 +78,7 @@ const createWindow = () => {
 
         webPreferences: {
             contextIsolation: true,
-            nodeIntegration: false,
-            enableRemoteModule: false
+            nodeIntegration: false
         },
 
         show: false
