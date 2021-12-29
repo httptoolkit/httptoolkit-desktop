@@ -43,7 +43,7 @@ To get started:
         * You can start both from the [UI project](https://github.com/httptoolkit/httptoolkit-ui) with just `npm start`, to work on the UI within the desktop app.
         * Alternatively, you can run `npm start` in the [server project](https://github.com/httptoolkit/httptoolkit-server), and `npm run start:web` in the UI project, to work on the server or both.
 * To build distributable packages:
-    * `npm run make` - this will attempt to build & package the desktop app for your current platform
+    * `npm run build` - this will attempt to build & package the desktop app for your current platform
 
 A few tips:
 
