@@ -140,7 +140,7 @@
     "electron-builder": "^22.9.1",
     "electron-notarize": "^1.0.0",
     "lodash": "^4.17.21",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^3.1.1",
     "targz": "^1.0.1",
     "ts-node": "^7.0.1",
     "tsc-watch": "^4.2.9",
