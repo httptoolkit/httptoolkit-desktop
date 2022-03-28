@@ -367,7 +367,7 @@ if (!amMainInstance) {
             // Remember the last '*Error:' line we saw.
             lastError = errorOutput
                 .split('\n')
-                .filter((line: string) => line.match(/^\w*Error:/))
+                .filter((line: string) => line.match(/^\s*Error:/i))
                 .slice(-1)[0];
         });
 
