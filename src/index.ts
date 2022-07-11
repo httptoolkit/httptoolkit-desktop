@@ -5,7 +5,7 @@ import { reportError, addBreadcrumb } from './errors';
 
 import { spawn, ChildProcess } from 'child_process';
 import * as os from 'os';
-import { promises as fs } from 'fs'
+import { promises as fs, createWriteStream, WriteStream } from 'fs'
 import * as net from 'net';
 import * as path from 'path';
 import { promisify } from 'util';
@@ -46,6 +46,7 @@ const APP_PATH = app.getAppPath();
 const RESOURCES_PATH = APP_PATH.endsWith('app.asar')
     ? path.dirname(APP_PATH) // If we're bundled, resources are above the bundle
     : APP_PATH; // Otherwise everything is in the root of the app
+const LOGS_PATH = app.getPath('logs');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -57,7 +58,7 @@ app.commandLine.appendSwitch('ignore-connections-limit', 'app.httptoolkit.tech')
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
 app.commandLine.appendSwitch('js-flags', '--expose-gc'); // Expose window.gc in the UI
 
-const createWindow = () => {
+const createWindow = (logStream: WriteStream) => {
     // Load the previous window state, falling back to defaults
     let windowState = windowStateKeeper({
         defaultWidth: 1366,
@@ -90,8 +91,18 @@ const createWindow = () => {
     }
 
     windows.push(window);
-
     windowState.manage(window);
+
+    // Stream renderer console output directly into our log file:
+    window.webContents.on('console-message', (_event, level, message) => {
+        const levelName = [
+            'VERBOSE',
+            'INFO',
+            'WARN',
+            'ERROR'
+        ][level];
+        logStream.write(`${levelName}: ${message}\n`);
+    });
 
     window.loadURL(APP_URL + '?' + querystring.stringify({
         authToken: AUTH_TOKEN,
@@ -116,6 +127,8 @@ if (!amMainInstance) {
     console.log('Not the main instance - quitting');
     app.quit();
 } else {
+    const logStream = createWriteStream(path.join(LOGS_PATH, 'last-run.log'));
+
     const args = yargs
         .option('with-forwarding', {
             type: 'string',
@@ -146,14 +159,18 @@ if (!amMainInstance) {
 
             try {
                 await stopServer(server, AUTH_TOKEN);
-                // We've done our best - now shut down for real.
-                app.quit();
             } catch (error) {
                 console.log('Failed to kill server', error);
                 reportError(error);
+            } finally {
+                // We've done our best - now shut down for real.
                 app.quit();
             }
         }
+    });
+
+    app.on('quit', () => {
+        logStream.close(); // Explicitly close the logstream, to flush everything to disk.
     });
 
     app.on('web-contents-created', (_event, contents) => {
@@ -349,18 +366,20 @@ if (!amMainInstance) {
         });
 
         // Both not null because we pass 'pipe' for args 2 & 3 above.
-        const stdout = server.stdout!;
-        const stderr = server.stderr!;
+        const serverStdout = server.stdout!;
+        const serverStderr = server.stderr!;
 
-        stdout.pipe(process.stdout);
-        stderr.pipe(process.stderr);
+        serverStdout.pipe(process.stdout);
+        serverStderr.pipe(process.stderr);
+        serverStdout.pipe(logStream);
+        serverStderr.pipe(logStream);
 
         server.stdout!.on('data', (data) => {
             addBreadcrumb({ category: 'server-stdout', message: data.toString('utf8'), level: <any>'info' });
         });
 
         let lastError: string | undefined = undefined;
-        stderr.on('data', (data) => {
+        serverStderr.on('data', (data) => {
             const errorOutput = data.toString('utf8');
             addBreadcrumb({ category: 'server-stderr', message: errorOutput, level: <any>'warning' });
 
@@ -505,13 +524,13 @@ if (!amMainInstance) {
 
     Promise.all([appReady.promise, portCheck]).then(() => {
         Menu.setApplicationMenu(getMenu(windows));
-        createWindow();
+        createWindow(logStream);
     });
 
     // We use a single process instance to manage the server, but we
     // do allow multiple windows.
     app.on('second-instance', () =>
-        appReady.promise.then(() => createWindow())
+        appReady.promise.then(() => createWindow(logStream))
     );
 
     app.on('activate', () => {
@@ -520,7 +539,7 @@ if (!amMainInstance) {
         if (windows.length === 0) {
             // Wait until the ready event - it's possible that this can fire
             // before the app is ready (not sure how) in which case things break!
-            appReady.promise.then(() => createWindow());
+            appReady.promise.then(() => createWindow(logStream));
         }
     });
 
