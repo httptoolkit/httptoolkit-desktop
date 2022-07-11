@@ -128,6 +128,7 @@ if (!amMainInstance) {
     app.quit();
 } else {
     const logStream = createWriteStream(path.join(LOGS_PATH, 'last-run.log'));
+    logStream.write(`--- Launching HTTP Toolkit desktop v${DESKTOP_VERSION} ---\n`);
 
     const args = yargs
         .option('with-forwarding', {
@@ -253,6 +254,7 @@ if (!amMainInstance) {
     }
 
     function showErrorAlert(title: string, body: string) {
+        logStream.write(`ALERT: ${title}: ${body}\n`);
         console.warn(`${title}: ${body}`);
         dialog.showErrorBox(title, body);
     }
