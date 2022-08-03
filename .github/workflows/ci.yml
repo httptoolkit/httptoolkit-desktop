@@ -7,11 +7,11 @@ jobs:
       matrix:
         include:
           - platform: linux
-            os: "ubuntu-18.04"
+            os: "ubuntu-20.04"
           - platform: windows
             os: "windows-2019"
           - platform: mac
-            os: "macos-10.15"
+            os: "macos-11"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
