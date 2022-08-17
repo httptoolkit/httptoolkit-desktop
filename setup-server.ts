@@ -10,6 +10,7 @@ import * as semver from 'semver';
 import fetch from 'node-fetch';
 import * as rimraf from 'rimraf';
 import * as targz from 'targz';
+import { execSync } from 'child_process';
 
 const extractTarGz = promisify(targz.decompress);
 const deleteFile = promisify(fs.unlink);
@@ -32,6 +33,14 @@ async function setUpLocalEnv() {
         console.log('Server setup completed.');
     } else {
         console.log('Correct server already downloaded.');
+    }
+
+    if (os.platform() !== 'win32') {
+        // To work around https://github.com/nodejs/node-gyp/issues/2713,
+        // caused by https://github.com/nodejs/node-gyp/commit/b9ddcd5bbd93b05b03674836b6ebdae2c2e74c8c,
+        // we manually remove node_gyp_bins subdirectories. Done by shell just
+        // because it's a quick easy fix:
+        execSync('find httptoolkit-server/node_modules -type d -name node_gyp_bins -prune -exec rm -r {} \\;');
     }
 }
 
