@@ -123,7 +123,7 @@
   "dependencies": {
     "@sentry/electron": "^2.5.0",
     "@sentry/integrations": "^6.7.1",
-    "electron-context-menu": "^3.1.1",
+    "electron-context-menu": "^3.5.0",
     "electron-first-run": "^3.0.0",
     "electron-store": "^8.0.0",
     "electron-window-state": "^5.0.3",
@@ -148,7 +148,7 @@
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-preset-env": "^1.7.0",
     "cross-env": "^7.0.3",
-    "electron": "^14.2.4",
+    "electron": "^20.0.3",
     "electron-builder": "^22.14.5",
     "electron-notarize": "^1.0.0",
     "lodash": "^4.17.21",
