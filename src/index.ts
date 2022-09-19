@@ -363,7 +363,10 @@ if (!amMainInstance) {
                 NODE_SKIP_PLATFORM_CHECK: '1',
                 NODE_OPTIONS:
                     process.env.HTTPTOOLKIT_NODE_OPTIONS || // Allow manually configuring node options
-                    "--max-http-header-size=102400" // By default, set max header size to 100KB
+                    [
+                        "--max-http-header-size=102400", // By default, set max header size to 100KB
+                        "--insecure-http-parser" // Allow invalid HTTP, e.g. header values - we'd rather be invisible than strict
+                    ].join(' ')
             })
         });
 
