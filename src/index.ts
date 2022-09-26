@@ -201,8 +201,26 @@ if (!amMainInstance) {
         });
 
         // Redirect all navigations & new windows to the system browser
-        contents.on('will-navigate', handleNavigation);
-        contents.on('new-window', handleNavigation);
+        contents.on('will-navigate', (event: Electron.Event, navigationUrl: string) => {
+            const parsedUrl = new URL(navigationUrl);
+
+            checkForUnsafeNavigation(parsedUrl);
+            if (!isLocalNavigation(parsedUrl)) {
+                event.preventDefault();
+                handleExternalNavigation(parsedUrl);
+            }
+        });
+        contents.setWindowOpenHandler((openDetails) => {
+            const parsedUrl = new URL(openDetails.url);
+
+            checkForUnsafeNavigation(parsedUrl);
+            if (!isLocalNavigation(parsedUrl)) {
+                handleExternalNavigation(parsedUrl);
+                return { action: 'deny' };
+            } else {
+                return { action: 'allow' };
+            }
+        });
 
         contents.on('render-process-gone', (_event, details) => {
             if (details.reason === 'clean-exit') return;
@@ -218,17 +236,6 @@ if (!amMainInstance) {
             });
         });
     });
-
-    function handleNavigation(event: Electron.Event, navigationUrl: string) {
-        const parsedUrl = new URL(navigationUrl);
-
-        checkForUnsafeNavigation(parsedUrl);
-
-        if (!isLocalNavigation(parsedUrl)) {
-            event.preventDefault();
-            handleExternalNavigation(parsedUrl);
-        }
-    }
 
     function checkForUnsafeNavigation(url: URL) {
         if (url.protocol !== 'http:' && url.protocol !== 'https:') {
