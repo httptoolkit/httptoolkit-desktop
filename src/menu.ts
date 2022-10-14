@@ -32,8 +32,10 @@ export const getMenu = (browserWindows: Electron.BrowserWindow[]) => {
                 { type: 'separator' },
                 { role: 'togglefullscreen' },
                 { type: 'separator' },
-                { role: 'reload' },
-                { role: 'forceReload' },
+                // Reload shortcuts disabled because they're rarely used and very easy to hit accidentally when debugging
+                // traffic in a web browser at the same time
+                { role: 'reload', accelerator: '' },
+                { role: 'forceReload', accelerator: '' },
                 { role: 'toggleDevTools' }
             ]
         },
