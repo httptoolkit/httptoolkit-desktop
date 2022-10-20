@@ -235,6 +235,30 @@ if (!amMainInstance) {
                 contents.reload();
             });
         });
+
+        contents.on('did-fail-load', (
+            _event,
+            code,
+            description,
+            url,
+            isMainFrame
+        ) => {
+            if (!isMainFrame) return; // Just in case
+
+            const { protocol, host, pathname } = new URL(url);
+            const baseURL = `${protocol}//${host}${pathname}`;
+
+            showErrorAlert(
+                "UI load failed",
+                `The HTTP Toolkit UI could not be loaded from\n${baseURL}.` +
+                "\n\n" +
+                `${description} (${code})`
+            );
+
+            setTimeout(() => {
+                contents.reload();
+            }, 2000);
+        });
     });
 
     function checkForUnsafeNavigation(url: URL) {
