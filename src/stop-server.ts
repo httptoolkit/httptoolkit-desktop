@@ -27,7 +27,8 @@ export async function stopServer(proc: ChildProcess.ChildProcess, token: string)
         await delay(100);
 
         if (Date.now() >= deadline) {
-            await hardKill(proc);
+            await hardKill(proc)
+                .catch(console.warn); // Not much we can do if this fails really
             break;
         }
     } while (isRunning(proc.pid!))
