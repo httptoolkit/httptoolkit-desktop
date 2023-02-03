@@ -25,7 +25,7 @@ This isn't the only way to run HTTP Toolkit! It's the most convenient option for
 
 Note that the resulting executable _doesn't_ autoupdate (at the moment). Instead both the server (as an [oclif](http://oclif.io) app) and the web UI (via service workers) include their own auto-update functionality.
 
-The builds themselves are done on GitHub Actions, and tagged master builds are automatically published from there as [github releases](https://github.com/httptoolkit/httptoolkit-desktop/releases).
+The builds themselves are done on GitHub Actions, and tagged `main` builds are automatically published from there as [github releases](https://github.com/httptoolkit/httptoolkit-desktop/releases).
 
 ## Contributing
 
