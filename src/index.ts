@@ -25,7 +25,6 @@ registerContextMenu({
     showSaveImageAs: true
 });
 
-import { reportStartupEvents } from './report-install-event';
 import { getMenu, shouldAutoHideMenu } from './menu';
 import { getDeferred, delay } from './util';
 import { stopServer } from './stop-server';
@@ -468,8 +467,6 @@ if (!amMainInstance) {
 
         return serverShutdown;
     }
-
-    reportStartupEvents();
 
     // Use a promise to organize events around 'ready', and ensure they never
     // fire before, as Electron will refuse to do various things if they do.

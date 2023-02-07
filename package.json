@@ -124,13 +124,11 @@
     "@sentry/electron": "^4.0.0",
     "@sentry/integrations": "^7.8.1",
     "electron-context-menu": "^3.5.0",
-    "electron-first-run": "^3.0.0",
     "electron-store": "^8.0.0",
     "electron-window-state": "^5.0.3",
     "os-proxy-config": "^1.1.1",
     "rimraf": "^2.7.1",
     "semver": "^7.2.1",
-    "universal-analytics": "^0.4.20",
     "uuid": "^3.3.3",
     "yargs": "^15.1.0"
   },
