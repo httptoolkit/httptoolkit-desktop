@@ -34,7 +34,7 @@ jobs:
           WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.platform }}-distributables
           path: dist/HttpToolkit-*
@@ -46,7 +46,7 @@ jobs:
     needs: build
     steps:
       - name: Get all distributables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
 
       - name: Create Release
         id: create_release
