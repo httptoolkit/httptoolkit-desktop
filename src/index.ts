@@ -587,7 +587,7 @@ if (!amMainInstance) {
 }
 
 ipcMain.handle(
-  'open-file',
+  'select-application',
   () =>
     dialog.showOpenDialogSync({
       properties: ['openFile', 'treatPackageAsDirectory'],

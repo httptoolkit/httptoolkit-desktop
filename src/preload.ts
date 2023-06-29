@@ -1,5 +1,5 @@
 import {contextBridge, ipcRenderer} from 'electron';
 
-contextBridge.exposeInMainWorld('nativeFile', {
-  open: () => ipcRenderer.invoke('open-file'),
+contextBridge.exposeInMainWorld('desktopApi', {
+  selectApplication: () => ipcRenderer.invoke('select-application'),
 });
