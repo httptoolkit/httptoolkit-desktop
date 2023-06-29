@@ -590,6 +590,9 @@ ipcMain.handle(
   'select-application',
   () =>
     dialog.showOpenDialogSync({
-      properties: ['openFile', 'treatPackageAsDirectory'],
+      properties:
+        process.platform === 'darwin'
+          ? ['openFile', 'openDirectory', 'treatPackageAsDirectory']
+          : ['openFile'],
     })?.[0]
 );
