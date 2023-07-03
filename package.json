@@ -15,7 +15,7 @@
     "build:dir-only": "npm run server:setup && electron-builder --dir",
     "start": "npm run server:setup && npm run start:app",
     "start:dev": "ts-node ./skip-server.ts && cross-env HTK_DEV=true APP_URL='http://local.httptoolkit.tech:8080' npm run start:app",
-    "start:app": "tsc-watch --onSuccess 'electron .'"
+    "start:app": "tsc-watch --onSuccess \"electron .\""
   },
   "keywords": [],
   "author": "Tim Perry",
