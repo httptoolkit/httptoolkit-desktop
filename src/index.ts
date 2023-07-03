@@ -11,7 +11,7 @@ import * as path from 'path';
 import { promisify } from 'util';
 import * as querystring from 'querystring';
 import { URL } from 'url';
-import { app, BrowserWindow, shell, Menu, dialog, session } from 'electron';
+import { app, BrowserWindow, shell, Menu, dialog, session, ipcMain } from 'electron';
 import * as uuid from 'uuid/v4';
 import * as yargs from 'yargs';
 import * as semver from 'semver';
@@ -77,6 +77,7 @@ const createWindow = (logStream: WriteStream) => {
         height: windowState.height,
 
         webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
             nodeIntegration: false
         },
@@ -584,3 +585,14 @@ if (!amMainInstance) {
         }
     });
 }
+
+ipcMain.handle(
+  'select-application',
+  () =>
+    dialog.showOpenDialogSync({
+      properties:
+        process.platform === 'darwin'
+          ? ['openFile', 'openDirectory', 'treatPackageAsDirectory']
+          : ['openFile'],
+    })?.[0]
+);

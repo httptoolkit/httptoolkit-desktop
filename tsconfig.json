@@ -26,6 +26,7 @@
     },
     "include": [
         "./src/index.ts",
+        "./src/preload.ts",
         "./custom-typings/**/*.d.ts"
     ]
 }
