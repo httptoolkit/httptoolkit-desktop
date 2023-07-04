@@ -8,11 +8,11 @@ import * as os from 'os';
 import { promises as fs, createWriteStream, WriteStream } from 'fs'
 import * as net from 'net';
 import * as path from 'path';
+import * as crypto from 'crypto';
 import { promisify } from 'util';
 import * as querystring from 'querystring';
 import { URL } from 'url';
 import { app, BrowserWindow, shell, Menu, dialog, session, ipcMain } from 'electron';
-import * as uuid from 'uuid/v4';
 import * as yargs from 'yargs';
 import * as semver from 'semver';
 import * as rimraf from 'rimraf';
@@ -34,7 +34,7 @@ const packageJson = require('../package.json');
 const isWindows = os.platform() === 'win32';
 
 const APP_URL = process.env.APP_URL || 'https://app.httptoolkit.tech';
-const AUTH_TOKEN = uuid();
+const AUTH_TOKEN = crypto.randomBytes(20).toString('base64url');
 const DESKTOP_VERSION = packageJson.version;
 const BUNDLED_SERVER_VERSION = packageJson.config['httptoolkit-server-version'];
 if (!semver.parse(BUNDLED_SERVER_VERSION)) {
