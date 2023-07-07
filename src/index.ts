@@ -68,8 +68,8 @@ const createWindow = (logStream: WriteStream) => {
         title: 'HTTP Toolkit',
         backgroundColor: '#d8e2e6',
 
-        minWidth: 960, // I.e. half of a 1920 (1080p) monitor
-        minHeight: 700,
+        minWidth: 700,
+        minHeight: 600,
 
         x: windowState.x,
         y: windowState.y,
