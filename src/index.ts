@@ -447,8 +447,10 @@ if (!amMainInstance) {
                 error = new Error(`Server shutdown unexpectedly with code ${errorOrCode}`);
             }
 
-            addBreadcrumb({ category: 'server-exit', message: error.message, level: <any>'error', data: { serverRunTime } });
-            logError(error);
+            addBreadcrumb({
+                category: 'server-exit', message: error.message, level: <any>'error', data: { serverRunTime }
+            });
+            logError(error, ['server-exit', error.message, (error as any).code?.toString() || '']);
 
             showErrorAlert(
                 'HTTP Toolkit hit an error',

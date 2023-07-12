@@ -21,13 +21,22 @@ if (!DEV_MODE) {
     });
 }
 
-export function logError(error: Error | string) {
+export function logError(error: Error | string, fingerprint?: string[]) {
     console.log(error);
 
+    const context = fingerprint
+        ? {
+            fingerprint:[
+                "{{ default }}",
+                ...fingerprint.filter(x => !!x)
+            ]
+        }
+        : undefined;
+
     if (typeof error === 'string') {
-        Sentry.captureMessage(error);
+        Sentry.captureMessage(error, context);
     } else {
-        Sentry.captureException(error);
+        Sentry.captureException(error, context);
     }
 }
 
