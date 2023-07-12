@@ -1,7 +1,7 @@
 const DEV_MODE = process.env.HTK_DEV === 'true';
 
 // Set up error handling before everything else:
-import { reportError, addBreadcrumb } from './errors';
+import { logError, addBreadcrumb } from './errors';
 
 import { spawn, ChildProcess } from 'child_process';
 import * as os from 'os';
@@ -162,7 +162,7 @@ if (!amMainInstance) {
                 await stopServer(server, AUTH_TOKEN);
             } catch (error) {
                 console.log('Failed to kill server', error);
-                reportError(error);
+                logError(error);
             } finally {
                 // We've done our best - now shut down for real.
                 app.quit();
@@ -225,7 +225,7 @@ if (!amMainInstance) {
         contents.on('render-process-gone', (_event, details) => {
             if (details.reason === 'clean-exit') return;
 
-            reportError(`Renderer gone: ${details.reason}`);
+            logError(`Renderer gone: ${details.reason}`);
             showErrorAlert(
                 "UI crashed",
                 "The HTTP Toolkit UI stopped unexpected.\n\nPlease file an issue at github.com/httptoolkit/httptoolkit."
@@ -336,7 +336,7 @@ if (!amMainInstance) {
         )) {
             // If the folder contains something other than the expected version folders, be careful.
             console.log(serverPaths);
-            reportError(
+            logError(
                 `Server path (${serverUpdatesPath}) contains unexpected content, ignoring`
             );
             return;
@@ -448,7 +448,7 @@ if (!amMainInstance) {
             }
 
             addBreadcrumb({ category: 'server-exit', message: error.message, level: <any>'error', data: { serverRunTime } });
-            reportError(error);
+            logError(error);
 
             showErrorAlert(
                 'HTTP Toolkit hit an error',
@@ -539,7 +539,7 @@ if (!amMainInstance) {
             // Otherwise we just let Electron use the defaults - no problem at all.
         })
         .catch((e) => {
-            reportError(e);
+            logError(e);
             return undefined;
         });
 

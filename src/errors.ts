@@ -21,7 +21,7 @@ if (!DEV_MODE) {
     });
 }
 
-export function reportError(error: Error | string) {
+export function logError(error: Error | string) {
     console.log(error);
 
     if (typeof error === 'string') {
