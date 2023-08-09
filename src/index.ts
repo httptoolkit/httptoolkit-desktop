@@ -17,16 +17,14 @@ import * as yargs from 'yargs';
 import * as semver from 'semver';
 import * as rimraf from 'rimraf';
 const rmRF = promisify(rimraf);
+
 import * as windowStateKeeper from 'electron-window-state';
 import { getSystemProxy } from 'os-proxy-config';
-
 import registerContextMenu = require('electron-context-menu');
-registerContextMenu({
-    showSaveImageAs: true
-});
 
-import { getMenu, shouldAutoHideMenu } from './menu';
 import { getDeferred, delay } from './util';
+import { getMenu, shouldAutoHideMenu } from './menu';
+import { ContextMenuDefinition, openContextMenu } from './context-menu';
 import { stopServer } from './stop-server';
 
 const packageJson = require('../package.json');
@@ -588,13 +586,17 @@ if (!amMainInstance) {
     });
 }
 
-ipcMain.handle(
-  'select-application',
-  () =>
-    dialog.showOpenDialogSync({
-      properties:
+ipcMain.handle('select-application', () => {
+    return dialog.showOpenDialogSync({
+        properties:
         process.platform === 'darwin'
-          ? ['openFile', 'openDirectory', 'treatPackageAsDirectory']
-          : ['openFile'],
-    })?.[0]
-);
+            ? ['openFile', 'openDirectory', 'treatPackageAsDirectory']
+            : ['openFile'],
+    })?.[0];
+});
+
+// Enable the default context menu
+registerContextMenu({ showSaveImageAs: true });
+
+// Enable custom context menus, for special cases where the UI wants to define the options available
+ipcMain.handle('open-context-menu', (_event: {}, options: ContextMenuDefinition) => openContextMenu(options));
