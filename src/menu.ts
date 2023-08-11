@@ -52,15 +52,15 @@ export const getMenu = (browserWindows: Electron.BrowserWindow[]) => {
             role: 'help',
             submenu: [
                 {
-                    label: 'Open documentation',
+                    label: 'Open Documentation',
                     click () { require('electron').shell.openExternal('https://httptoolkit.tech/docs') }
                 },
                 {
-                    label: 'Share your feedback',
+                    label: 'Share Your Feedback',
                     click () { require('electron').shell.openExternal('https://github.com/httptoolkit/httptoolkit/issues/new/choose') }
                 },
                 {
-                    label: 'View HTTP Toolkit logs',
+                    label: 'View HTTP Toolkit Logs',
                     click () { require('electron').shell.showItemInFolder(path.join(app.getPath('logs'), 'last-run.log')) }
                 }
             ]
