@@ -19,8 +19,7 @@ export const getMenu = (browserWindows: Electron.BrowserWindow[]) => {
                 { role: 'copy', registerAccelerator: false },
                 { role: 'paste', registerAccelerator: false },
                 { role: 'pasteAndMatchStyle', registerAccelerator: false },
-                { role: 'delete' },
-                { role: 'selectAll' }
+                { role: 'delete' }
             ]
         },
         {

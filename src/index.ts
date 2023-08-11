@@ -596,7 +596,10 @@ ipcMain.handle('select-application', () => {
 });
 
 // Enable the default context menu
-registerContextMenu({ showSaveImageAs: true });
+registerContextMenu({
+    showSaveImageAs: true,
+    showSelectAll: false // Weird (does web-style select-all-text), skip it
+});
 
 // Enable custom context menus, for special cases where the UI wants to define the options available
 ipcMain.handle('open-context-menu', (_event: {}, options: ContextMenuDefinition) => openContextMenu(options));
