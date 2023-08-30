@@ -602,4 +602,9 @@ registerContextMenu({
 });
 
 // Enable custom context menus, for special cases where the UI wants to define the options available
-ipcMain.handle('open-context-menu', (_event: {}, options: ContextMenuDefinition) => openContextMenu(options));
+ipcMain.handle('open-context-menu', (_event: {}, options: ContextMenuDefinition) =>
+    openContextMenu(options)
+);
+
+ipcMain.handle('get-desktop-version', () => DESKTOP_VERSION);
+ipcMain.handle('get-server-auth-token', () => AUTH_TOKEN);

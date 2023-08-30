@@ -3,9 +3,12 @@ import { contextBridge, ipcRenderer } from 'electron';
 import type { ContextMenuDefinition } from './context-menu';
 
 contextBridge.exposeInMainWorld('desktopApi', {
-
-    selectApplication: () => ipcRenderer.invoke('select-application'),
-
-    openContextMenu: (options: ContextMenuDefinition) => ipcRenderer.invoke('open-context-menu', options)
-
+    desktopVersion: () =>
+        ipcRenderer.invoke('get-desktop-version'),
+    serverAuthToken: () =>
+        ipcRenderer.invoke('get-server-auth-token'),
+    selectApplication: () =>
+        ipcRenderer.invoke('select-application'),
+    openContextMenu: (options: ContextMenuDefinition) =>
+        ipcRenderer.invoke('open-context-menu', options)
 });
