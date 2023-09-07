@@ -1,3 +1,5 @@
+import { randomUUID } from 'crypto';
+
 const DEV_MODE = process.env.HTK_DEV === 'true';
 
 import * as Sentry from '@sentry/electron';
@@ -18,6 +20,14 @@ if (!DEV_MODE) {
                     :  __dirname
             })
         ]
+    });
+
+    Sentry.configureScope((scope) => {
+        // We use a random id to distinguish between many errors in one session vs
+        // one error in many sessions. This isn't persisted and can't be used to
+        // identify anybody between sessions.
+        const randomId = randomUUID();
+        scope.setUser({ id: randomId, username: `anon-${randomId}` });
     });
 }
 
