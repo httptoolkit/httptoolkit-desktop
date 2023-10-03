@@ -381,22 +381,28 @@ if (!amMainInstance) {
         const serverBinPath = path.join(RESOURCES_PATH, 'httptoolkit-server', 'bin', binName);
         const serverBinCommand = isWindows ? `"${serverBinPath}"` : serverBinPath;
 
+        const envVars = {
+            ...process.env,
+
+            HTK_SERVER_TOKEN: AUTH_TOKEN,
+            NODE_SKIP_PLATFORM_CHECK: '1',
+            OPENSSL_CONF: undefined, // Not relevant to us, and if set this can crash Node.js
+
+            NODE_OPTIONS:
+                process.env.HTTPTOOLKIT_NODE_OPTIONS || // Allow manually configuring node options
+                [
+                    "--max-http-header-size=102400", // By default, set max header size to 100KB
+                    "--insecure-http-parser" // Allow invalid HTTP, e.g. header values - we'd rather be invisible than strict
+                ].join(' ')
+        }
+
         server = spawn(serverBinCommand, ['start'], {
             windowsHide: true,
             stdio: ['inherit', 'pipe', 'pipe'],
             shell: isWindows, // Required to spawn a .cmd script
             windowsVerbatimArguments: false, // Fixes quoting in windows shells
             detached: !isWindows, // Detach on Linux, so we can cleanly kill as a group
-            env: Object.assign({}, process.env, {
-                HTK_SERVER_TOKEN: AUTH_TOKEN,
-                NODE_SKIP_PLATFORM_CHECK: '1',
-                NODE_OPTIONS:
-                    process.env.HTTPTOOLKIT_NODE_OPTIONS || // Allow manually configuring node options
-                    [
-                        "--max-http-header-size=102400", // By default, set max header size to 100KB
-                        "--insecure-http-parser" // Allow invalid HTTP, e.g. header values - we'd rather be invisible than strict
-                    ].join(' ')
-            })
+            env: envVars
         });
 
         // Both not null because we pass 'pipe' for args 2 & 3 above.
