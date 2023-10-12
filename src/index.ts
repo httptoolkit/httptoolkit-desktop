@@ -428,7 +428,7 @@ if (!amMainInstance) {
             lastError = errorOutput
                 .split('\n')
                 .filter((line: string) => line.match(/^\s*Error:/i))
-                .slice(-1)[0] || lastError;
+                .slice(-1)[0]?.trim() || lastError;
         });
 
         const serverStartTime = Date.now();
