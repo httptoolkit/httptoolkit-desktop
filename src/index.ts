@@ -44,6 +44,7 @@ const RESOURCES_PATH = APP_PATH.endsWith('app.asar')
     ? path.dirname(APP_PATH) // If we're bundled, resources are above the bundle
     : APP_PATH; // Otherwise everything is in the root of the app
 const LOGS_PATH = app.getPath('logs');
+const LAST_RUN_LOG_PATH = path.join(LOGS_PATH, 'last-run.log');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -125,7 +126,7 @@ if (!amMainInstance) {
     console.log('Not the main instance - quitting');
     app.quit();
 } else {
-    const logStream = createWriteStream(path.join(LOGS_PATH, 'last-run.log'));
+    const logStream = createWriteStream(LAST_RUN_LOG_PATH);
     logStream.write(`--- Launching HTTP Toolkit desktop v${DESKTOP_VERSION} ---\n`);
 
     const args = yargs
@@ -458,7 +459,9 @@ if (!amMainInstance) {
 
             showErrorAlert(
                 'HTTP Toolkit hit an error',
-                `${error.message}.\n\nPlease file an issue at github.com/httptoolkit/httptoolkit.`
+                `${error.message}.\n\n` +
+                `See ${LAST_RUN_LOG_PATH} for more details.\n\n` +
+                `Please file an issue at github.com/httptoolkit/httptoolkit.`
             );
 
             // Retry limited times, but not for near-immediate failures.
