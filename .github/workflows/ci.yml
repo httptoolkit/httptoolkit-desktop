@@ -22,6 +22,12 @@ jobs:
           check-latest: true
           cache: 'npm'
 
+      # Due to https://github.com/nodejs/node-gyp/issues/2869, node-gyp fails
+      # in latest GH runners, due to Python 3.12 incompatibility:
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
       - run: npm ci
 
       - run: npm run build
