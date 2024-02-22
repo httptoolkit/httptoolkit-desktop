@@ -18,7 +18,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 20.8.0
+          node-version: 20.11.1
           check-latest: true
           cache: 'npm'
 
