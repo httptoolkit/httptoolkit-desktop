@@ -61,8 +61,8 @@
       "icon": "src/icons/icon.icns",
       "entitlements": "src/entitlements.plist",
       "entitlementsInherit": "src/entitlements.plist",
-      "forceCodeSigning": false,
-      "notarize": false
+      "forceCodeSigning": true,
+      "notarize": true
     },
     "dmg": {
       "artifactName": "HttpToolkit-${version}.dmg"
@@ -119,7 +119,6 @@
     "appImage": {
       "artifactName": "HttpToolkit-${version}.AppImage"
     },
-    "afterSign": "./src/hooks/after-sign.js",
     "publish": null
   },
   "dependencies": {
@@ -148,7 +147,6 @@
     "cross-env": "^7.0.3",
     "electron": "^22.3.26",
     "electron-builder": "^24.13.3",
-    "electron-notarize": "^1.0.0",
     "lodash": "^4.17.21",
     "node-fetch": "^2.6.7",
     "targz": "^1.0.1",
