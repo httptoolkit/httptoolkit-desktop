@@ -11,9 +11,9 @@
     "server:setup": "ts-node ./setup-server.ts",
     "build": "npm run build:src && npm run build:electron",
     "build:src": "tsc",
+    "postbuild:src": "ts-node ./strip-preload-map.ts",
     "build:electron": "npm run server:setup && electron-builder build",
     "build:dir-only": "npm run server:setup && electron-builder --dir",
-    "postbuild": "ts-node ./strip-preload-map.ts",
     "start": "npm run server:setup && npm run start:app",
     "start:dev": "ts-node ./skip-server.ts && cross-env HTK_DEV=true APP_URL='http://local.httptoolkit.tech:8080' npm run start:app",
     "start:app": "tsc-watch --onSuccess \"electron .\""
