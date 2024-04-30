@@ -38,7 +38,7 @@ jobs:
   publish:
     name: Publish a release
     runs-on: "ubuntu-20.04"
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    if: always()
     needs: build
     steps:
       - name: Get all distributables
