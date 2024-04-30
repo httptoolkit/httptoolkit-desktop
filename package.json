@@ -61,7 +61,7 @@
       "icon": "src/icons/icon.icns",
       "entitlements": "src/entitlements.plist",
       "entitlementsInherit": "src/entitlements.plist",
-      "forceCodeSigning": true,
+      "forceCodeSigning": false,
       "notarize": true
     },
     "dmg": {
