@@ -43,21 +43,21 @@ function softShutdown(token: string) {
 
     // To handle all this, we send a HTTP request to the GraphQL API instead, which triggers the same thing.
     return new Promise<void>((resolve, reject) => {
-        const req = http.request("http://127.0.0.1:45457", {
+        const req = http.request("http://127.0.0.1:45457/shutdown", {
             method: 'POST',
             headers: {
-                'content-type': 'application/json',
                 'origin': 'https://app.httptoolkit.tech',
                 'authorization': `Bearer ${token}`
             }
         });
-        req.on('error', reject);
-
-        req.end(JSON.stringify({
-            operationName: 'Shutdown',
-            query: 'mutation Shutdown { shutdown }',
-            variables: {}
-        }));
+        req.on('error', (e) => {
+            console.warn(`Error requesting server shutdown: ${e.message}`);
+            // This often happens - not totally clear why, but seems likely that in the race to
+            // shut down, the server doesn't successfully send a response first. If the server
+            // is not reachable though, it's probably shut down already so we're all good.
+            resolve();
+        });
+        req.end();
 
         req.on('response', (res) => {
             if (res.statusCode !== 200) {
@@ -71,20 +71,14 @@ function softShutdown(token: string) {
             res.on('end', () => {
                 const rawResponseBody = Buffer.concat(responseChunks);
                 try {
-                    const responseBody = JSON.parse(rawResponseBody.toString('utf8'));
-                    const errors = responseBody.errors as Array<{ message: string, path: string[] }> | undefined;
-                    if (errors?.length) {
-                        console.error(errors);
-                        const errorCount = errors.length > 1 ? `s (${errors.length})` : '';
+                    const responseBodyString = rawResponseBody.toString('utf8');
+                    const responseBody = JSON.parse(responseBodyString);
 
-                        throw new Error(
-                            `Server error${errorCount} during shutdown: ${errors.map(e =>
-                                `${e.message} at ${e.path.join('.')}`
-                            ).join(', ')}`
-                        );
+                    if (responseBody.success) {
+                        resolve();
+                    } else {
+                        throw new Error(`Server shotdown failed: ${responseBodyString}`);
                     }
-
-                    resolve();
                 } catch (e) {
                     reject(e);
                 }
