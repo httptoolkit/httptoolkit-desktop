@@ -14,9 +14,9 @@ jobs:
             os: "macos-11"
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 20.11.1
           check-latest: true
@@ -24,7 +24,7 @@ jobs:
 
       # Due to https://github.com/nodejs/node-gyp/issues/2869, node-gyp fails
       # in latest GH runners, due to Python 3.12 incompatibility:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -50,7 +50,7 @@ jobs:
           WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.platform }}-distributables
           path: dist/HttpToolkit-*
@@ -62,7 +62,7 @@ jobs:
     needs: build
     steps:
       - name: Get all distributables
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       - name: Create Release
         id: create_release
