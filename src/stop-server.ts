@@ -1,7 +1,6 @@
 import * as ChildProcess from 'child_process';
 import * as http from 'http';
 
-import { logError } from './errors';
 import { delay } from './util';
 
 const isRunning = (pid: number) => {
@@ -16,7 +15,7 @@ const isRunning = (pid: number) => {
 
 export async function stopServer(proc: ChildProcess.ChildProcess, token: string) {
     await softShutdown(token)
-        .catch(logError); // If that fails, continue shutting down anyway
+        .catch(console.log); // If that fails, continue shutting down anyway
 
     // In each case, that triggers a clean shutdown. We want to make sure it definitely shuts
     // down though, so we poll the process state, and kill it if it's still running in 3 seconds.
