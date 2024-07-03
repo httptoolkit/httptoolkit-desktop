@@ -11,7 +11,7 @@ jobs:
           - platform: windows
             os: "windows-2019"
           - platform: mac
-            os: "macos-11"
+            os: "macos-12"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -32,7 +32,7 @@ jobs:
 
       # The API key in APPLE_API_KEY is a PEM cert that must be read from disk:
       - run: echo "$APPLE_API_KEY" > ./apple-api-key.p8
-        if: matrix.os == 'macos-11'
+        if: startsWith(matrix.os, 'macos-')
         env:
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
 
