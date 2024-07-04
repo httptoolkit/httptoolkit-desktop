@@ -1,5 +1,3 @@
-require('ts-node/register');
-
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
@@ -8,7 +6,7 @@ import { promisify } from 'util';
 import * as _ from 'lodash';
 import * as semver from 'semver';
 import fetch from 'node-fetch';
-import * as rimraf from 'rimraf';
+import rimraf from 'rimraf';
 import * as targz from 'targz';
 import { execSync } from 'child_process';
 

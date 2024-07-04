@@ -1,7 +1,7 @@
 import { promisify } from 'util';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as rimraf from 'rimraf';
+import rimraf from 'rimraf';
 
 const canAccess = (file: string) => promisify(fs.access)(file).then(() => true).catch(() => false);
 const deleteDir = promisify(rimraf);
