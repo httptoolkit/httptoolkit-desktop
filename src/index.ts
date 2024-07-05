@@ -32,6 +32,8 @@ const packageJson = require('../package.json');
 const isWindows = os.platform() === 'win32';
 
 const APP_URL = process.env.APP_URL || 'https://app.httptoolkit.tech';
+const hasTrustedOrigin = (url: URL) => url.origin === APP_URL;
+
 const AUTH_TOKEN = crypto.randomBytes(20).toString('base64url');
 const DESKTOP_VERSION = packageJson.version;
 const BUNDLED_SERVER_VERSION = packageJson.config['httptoolkit-server-version'];
@@ -101,6 +103,14 @@ const createWindow = (logStream: WriteStream) => {
             'ERROR'
         ][level];
         logStream.write(`${levelName}: ${message}\n`);
+    });
+
+    // Limit permissions to our trusted origin only. This shouldn't be required (we don't allow loading
+    // 3rd party sites) but it's good practice for defense-in-depth etc. We don't limit permissions
+    // on the other hand - for *our* code, we trust it to do whatever it needs.
+    window.webContents.session.setPermissionRequestHandler((wc, _perm, callback) => {
+        const pageUrl = new URL(wc.getURL());
+        return callback(hasTrustedOrigin(pageUrl));
     });
 
     window.loadURL(APP_URL + '?' + querystring.stringify({
@@ -204,7 +214,7 @@ if (!amMainInstance) {
             const parsedUrl = new URL(navigationUrl);
 
             checkForUnsafeNavigation(parsedUrl);
-            if (!isLocalNavigation(parsedUrl)) {
+            if (!hasTrustedOrigin(parsedUrl)) {
                 event.preventDefault();
                 handleExternalNavigation(parsedUrl);
             }
@@ -213,7 +223,7 @@ if (!amMainInstance) {
             const parsedUrl = new URL(openDetails.url);
 
             checkForUnsafeNavigation(parsedUrl);
-            if (!isLocalNavigation(parsedUrl)) {
+            if (!hasTrustedOrigin(parsedUrl)) {
                 handleExternalNavigation(parsedUrl);
                 return { action: 'deny' };
             } else {
@@ -266,10 +276,6 @@ if (!amMainInstance) {
             const error = new Error(`Attempt to open a dangerous non-HTTP url: ${url}`);
             throw error;
         }
-    }
-
-    function isLocalNavigation(url: URL) {
-        return url.origin === APP_URL;
     }
 
     function handleExternalNavigation(url: URL) {
