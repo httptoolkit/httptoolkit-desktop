@@ -614,13 +614,16 @@ const ipcHandler = <A, R>(fn: (...args: A[]) => R) => (
     }
 };
 
-ipcMain.handle('select-application', ipcHandler(() => {
-    return dialog.showOpenDialogSync({
+ipcMain.handle('select-application', ipcHandler(async () => {
+    const result = await dialog.showOpenDialog({
         properties:
         process.platform === 'darwin'
             ? ['openFile', 'openDirectory', 'treatPackageAsDirectory']
             : ['openFile'],
-    })?.[0];
+    });
+
+    if (!result || result.canceled) return undefined;
+    else return result.filePaths[0];
 }));
 
 // Enable the default context menu
