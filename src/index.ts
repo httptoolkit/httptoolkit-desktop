@@ -601,14 +601,27 @@ if (!amMainInstance) {
     });
 }
 
-ipcMain.handle('select-application', () => {
+// Restrict calls to IPC handler to our trusted host. This shouldn't be required (we don't allow loading
+// 3rd party sites) but it's good practice for defense-in-depth etc.
+const ipcHandler = <A, R>(fn: (...args: A[]) => R) => (
+    event: Electron.IpcMainInvokeEvent,
+    ...args: A[]
+): R => {
+    if (!hasTrustedOrigin(new URL(event.senderFrame.url))) {
+        throw new Error(`Invalid IPC sender URL: ${event.senderFrame.url}`);
+    } else {
+        return fn(...args);
+    }
+};
+
+ipcMain.handle('select-application', ipcHandler(() => {
     return dialog.showOpenDialogSync({
         properties:
         process.platform === 'darwin'
             ? ['openFile', 'openDirectory', 'treatPackageAsDirectory']
             : ['openFile'],
     })?.[0];
-});
+}));
 
 // Enable the default context menu
 registerContextMenu({
@@ -617,9 +630,9 @@ registerContextMenu({
 });
 
 // Enable custom context menus, for special cases where the UI wants to define the options available
-ipcMain.handle('open-context-menu', (_event: {}, options: ContextMenuDefinition) =>
+ipcMain.handle('open-context-menu', ipcHandler((options: ContextMenuDefinition) =>
     openContextMenu(options)
-);
+));
 
-ipcMain.handle('get-desktop-version', () => DESKTOP_VERSION);
-ipcMain.handle('get-server-auth-token', () => AUTH_TOKEN);
+ipcMain.handle('get-desktop-version', ipcHandler(() => DESKTOP_VERSION));
+ipcMain.handle('get-server-auth-token', ipcHandler(() => AUTH_TOKEN));
