@@ -1,98 +1,18 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-
-<svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="99.301315mm"
-   height="99.301315mm"
-   viewBox="0 0 99.301315 99.301315"
-   version="1.1"
-   id="svg122"
-   inkscape:version="0.92.3 (2405546, 2018-03-11)"
-   sodipodi:docname="logo-icon.svg">
-  <defs
-     id="defs116" />
-  <sodipodi:namedview
-     id="base"
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1.0"
-     inkscape:pageopacity="0.0"
-     inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="133.76623"
-     inkscape:cy="170.81487"
-     inkscape:document-units="mm"
-     inkscape:current-layer="layer1"
-     showgrid="false"
-     fit-margin-top="0"
-     fit-margin-left="0"
-     fit-margin-right="0"
-     fit-margin-bottom="0"
-     inkscape:window-width="1920"
-     inkscape:window-height="1058"
-     inkscape:window-x="0"
-     inkscape:window-y="22"
-     inkscape:window-maximized="1" />
-  <metadata
-     id="metadata119">
-    <rdf:RDF>
-      <cc:Work
-         rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
-        <dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
-      </cc:Work>
-    </rdf:RDF>
-  </metadata>
-  <g
-     inkscape:label="Layer 1"
-     inkscape:groupmode="layer"
-     id="layer1"
-     transform="translate(-54.622467,-84.034866)">
-    <rect
-       style="opacity:1;fill:#ffffff;fill-opacity:0;stroke:none;stroke-width:1.56109238;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="rect4980"
-       width="99.301315"
-       height="99.301315"
-       x="54.622467"
-       y="84.034866"
-       inkscape:export-xdpi="8.9399996"
-       inkscape:export-ydpi="8.9399996" />
-    <path
-       d="m 87.113101,88.512692 h 11.662253 q 0.622747,0 1.075645,0.47037 0.452901,0.470358 0.452901,1.117094 V 128.0817 q 0,0.64674 -0.452901,1.1171 -0.452898,0.47035 -1.075645,0.47035 H 87.113101 q -0.622735,0 -1.075639,-0.47035 -0.452899,-0.47036 -0.452899,-1.1171 V 115.55837 H 74.261992 v 12.52333 q 0,0.64674 -0.452898,1.1171 -0.452917,0.47035 -1.075651,0.47035 H 61.07119 q -0.622735,0 -1.075639,-0.41155 -0.452898,-0.47036 -0.452898,-1.1759 V 90.100156 q 0,-0.646736 0.452898,-1.117094 0.452904,-0.47037 1.075639,-0.47037 h 11.662253 q 0.622734,0 1.075651,0.47037 0.452898,0.470358 0.452898,1.117094 V 102.15312 H 85.584563 V 90.100156 q 0,-0.646736 0.452899,-1.117094 0.452904,-0.47037 1.075639,-0.47037 z"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:551.27655029px;line-height:1.25;font-family:'Rubik Mono One';-inkscape-font-specification:'Rubik Mono One Bold';letter-spacing:-40.21031952px;word-spacing:0px;fill:#e1421f;fill-opacity:1;stroke:none;stroke-width:0.43270186"
-       id="path7194-53-9"
-       inkscape:connector-curvature="0"
-       inkscape:export-xdpi="8.9399996"
-       inkscape:export-ydpi="8.9399996" />
-    <path
-       d="m 107.76326,88.512692 h 39.68737 q 0.63269,0 1.09283,0.470364 0.46014,0.470353 0.46014,1.117106 v 9.465985 q 0,0.646743 -0.46014,1.117093 -0.46014,0.47036 -1.09283,0.47036 h -12.36636 v 26.92806 q 0,0.64675 -0.46015,1.11711 -0.46014,0.47036 -1.09283,0.47036 H 121.6826 q -0.63269,0 -1.09284,-0.47036 -0.46014,-0.47036 -0.46014,-1.11711 V 101.1536 h -12.36636 q -0.63269,0 -1.09283,-0.47036 -0.46015,-0.47035 -0.46015,-1.117093 v -9.465985 q 0,-0.646753 0.46015,-1.117106 0.46014,-0.470364 1.09283,-0.470364 z"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:540.23040771px;line-height:1.25;font-family:'Rubik Mono One';-inkscape-font-specification:'Rubik Mono One';letter-spacing:-58.88264847px;word-spacing:0px;fill:#e1421f;fill-opacity:1;stroke:none;stroke-width:0.4361468"
-       id="path4997-2"
-       inkscape:connector-curvature="0"
-       inkscape:export-xdpi="8.9399996"
-       inkscape:export-ydpi="8.9399996" />
-    <path
-       d="m 110.39364,137.7019 h 21.1732 q 8.03902,0 12.73789,4.05686 4.69887,4.05684 4.69887,10.40671 0,6.34984 -3.9629,10.11272 -3.96289,3.70409 -13.47386,3.70409 h -7.4729 v 11.28863 q 0,0.64674 -0.4529,1.1171 -0.4529,0.47036 -1.07565,0.47036 h -12.17175 q -0.62274,0 -1.07565,-0.47036 -0.4529,-0.47036 -0.4529,-1.1171 v -37.98154 q 0,-0.64674 0.4529,-1.1171 0.45291,-0.47037 1.07565,-0.47037 z m 13.75692,10.93586 v 6.46744 h 7.18983 q 1.3021,0 2.09467,-0.82312 0.8492,-0.82312 0.8492,-2.29301 0,-1.46987 -0.79258,-2.41059 -0.79258,-0.94072 -2.15129,-0.94072 z"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:551.27655029px;line-height:1.25;font-family:'Rubik Mono One';-inkscape-font-specification:'Rubik Mono One Bold';letter-spacing:-77.50056458px;word-spacing:0px;fill:#e1421f;fill-opacity:1;stroke:none;stroke-width:0.43270186"
-       id="path7200-6-2"
-       inkscape:connector-curvature="0"
-       inkscape:export-xdpi="8.9399996"
-       inkscape:export-ydpi="8.9399996" />
-    <path
-       d="M 61.095633,137.70193 H 100.783 q 0.6327,0 1.09284,0.47036 0.46014,0.47035 0.46014,1.11711 v 9.46598 q 0,0.64675 -0.46014,1.11709 -0.46014,0.47037 -1.09284,0.47037 H 88.416648 v 26.92805 q 0,0.64676 -0.46015,1.11711 -0.460141,0.47037 -1.09283,0.47037 H 75.014973 q -0.632687,0 -1.092838,-0.47037 -0.460137,-0.47035 -0.460137,-1.11711 V 150.34284 H 61.095633 q -0.632695,0 -1.092832,-0.47037 -0.460148,-0.47034 -0.460148,-1.11709 v -9.46598 q 0,-0.64676 0.460148,-1.11711 0.460137,-0.47036 1.092832,-0.47036 z"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:540.23040771px;line-height:1.25;font-family:'Rubik Mono One';-inkscape-font-specification:'Rubik Mono One';letter-spacing:-58.88264847px;word-spacing:0px;fill:#e1421f;fill-opacity:1;stroke:none;stroke-width:0.4361468"
-       id="path4997-2-4"
-       inkscape:connector-curvature="0"
-       inkscape:export-xdpi="8.9399996"
-       inkscape:export-ydpi="8.9399996" />
-  </g>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 27.5.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 120 120" style="enable-background:new 0 0 120 120;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#E24120;}
+</style>
+<path class="st0" d="M39,107.6L64,22.1l0,0c0.2-0.8,1-1.4,1.9-1.4H75c0.9,0,1.5,0.8,1.3,1.7l-27.9,95.8c-0.3,1.1-1.3,1.9-2.5,1.9
+	H23.6C10.6,120,0,109.4,0,96.4V23.6C0,10.6,10.6,0,23.6,0H81c0.9,0,1.5,0.8,1.3,1.7L79.6,11c-0.2,0.8-1,1.4-1.9,1.4H23.4
+	c-6.1,0-11,4.9-11,11v73.2c0,6.1,4.9,11,11,11H39z"/>
+<path class="st0" d="M96.4,0c13,0,23.6,10.6,23.6,23.6v72.8c0,13-10.6,23.6-23.6,23.6H57.8c-0.9,0-1.5-0.8-1.3-1.7l2.7-9.3
+	c0.2-0.8,1-1.4,1.9-1.4h35.5c6.1,0,11-4.9,11-11V23.4c0-5-3.3-9.2-7.9-10.6l-24.8,85c-0.2,0.8-1,1.4-1.9,1.4h-9.2
+	c-0.9,0-1.5-0.8-1.3-1.7L90.5,1.9C90.8,0.8,91.8,0,93,0H96.4L96.4,0z"/>
+<path class="st0" d="M34.2,37.2h2c2.9,0,5.2,2.3,5.2,5.2v2c0,2.9-2.3,5.2-5.2,5.2h-2c-2.9,0-5.2-2.3-5.2-5.2v-2
+	C29,39.6,31.3,37.2,34.2,37.2z"/>
+<path class="st0" d="M34.2,66.2h2c2.9,0,5.2,2.3,5.2,5.2v2c0,2.9-2.3,5.2-5.2,5.2h-2c-2.9,0-5.2-2.3-5.2-5.2v-2
+	C29,68.5,31.3,66.2,34.2,66.2z"/>
 </svg>
