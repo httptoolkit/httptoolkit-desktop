@@ -639,3 +639,13 @@ ipcMain.handle('open-context-menu', ipcHandler((options: ContextMenuDefinition) 
 
 ipcMain.handle('get-desktop-version', ipcHandler(() => DESKTOP_VERSION));
 ipcMain.handle('get-server-auth-token', ipcHandler(() => AUTH_TOKEN));
+
+let restarting = false;
+ipcMain.handle('restart-app', ipcHandler(() => {
+    if (restarting) return;
+    restarting = true;
+    console.log('Restarting...');
+
+    app.relaunch();
+    app.quit();
+}));
