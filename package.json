@@ -114,7 +114,8 @@
       ]
     },
     "rpm": {
-      "artifactName": "HttpToolkit-${version}.rpm"
+      "artifactName": "HttpToolkit-${version}.rpm",
+      "afterRemove": "scripts/post-uninstall-rpm.sh"
     },
     "appImage": {
       "artifactName": "HttpToolkit-${version}.AppImage"
