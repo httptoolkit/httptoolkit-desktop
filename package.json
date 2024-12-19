@@ -78,7 +78,8 @@
     },
     "nsis": {
       "installerIcon": "./src/icons/icon.ico",
-      "artifactName": "HttpToolkit-installer-${version}.exe"
+      "artifactName": "HttpToolkit-installer-${version}.exe",
+      "deleteAppDataOnUninstall": true
     },
     "linux": {
       "target": [
