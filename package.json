@@ -124,7 +124,7 @@
     "publish": null
   },
   "dependencies": {
-    "@sentry/electron": "^4.0.0",
+    "@sentry/electron": "^5.6.0",
     "@sentry/integrations": "^7.8.1",
     "electron-context-menu": "^3.5.0",
     "electron-store": "^8.0.0",
