@@ -9,6 +9,7 @@ import type { ContextMenuDefinition } from './context-menu';
 // the preload promise here to confirm it's definitely ready.
 let desktopVersion: string | undefined;
 let authToken: string | undefined;
+let deviceInfo: {} | undefined;
 
 const preloadPromise = Promise.all([
     ipcRenderer.invoke('get-desktop-version').then(result => {
@@ -16,7 +17,15 @@ const preloadPromise = Promise.all([
     }),
     ipcRenderer.invoke('get-server-auth-token').then(result => {
         authToken = result;
-    })
+    }),
+    Promise.race([
+        ipcRenderer.invoke('get-device-info').then(result => {
+            deviceInfo = result;
+        }),
+        // Give up after 500m - might complete later, but we don't
+        // want to block 'API ready' for this info.
+        new Promise((resolve) => setTimeout(resolve, 500))
+    ])
 ]);
 
 contextBridge.exposeInMainWorld('desktopApi', {
@@ -24,6 +33,7 @@ contextBridge.exposeInMainWorld('desktopApi', {
 
     getDesktopVersion: () => desktopVersion,
     getServerAuthToken: () => authToken,
+    getDeviceInfo: () => deviceInfo,
 
     selectApplication: () =>
         ipcRenderer.invoke('select-application'),
