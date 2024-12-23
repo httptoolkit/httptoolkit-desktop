@@ -27,6 +27,9 @@ contextBridge.exposeInMainWorld('desktopApi', {
 
     selectApplication: () =>
         ipcRenderer.invoke('select-application'),
+    selectFilePath: () =>
+        ipcRenderer.invoke('select-file-path'),
+
     openContextMenu: (options: ContextMenuDefinition) =>
         ipcRenderer.invoke('open-context-menu', options),
 

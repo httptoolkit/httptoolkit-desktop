@@ -626,6 +626,15 @@ ipcMain.handle('select-application', ipcHandler(async () => {
     else return result.filePaths[0];
 }));
 
+ipcMain.handle('select-file-path', ipcHandler(async () => {
+    const result = await dialog.showOpenDialog({
+        properties: ['openFile']
+    });
+
+    if (!result || result.canceled) return undefined;
+    else return result.filePaths[0];
+}));
+
 // Enable the default context menu
 registerContextMenu({
     showSaveImageAs: true,
