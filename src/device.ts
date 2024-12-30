@@ -6,7 +6,12 @@ const execAsync = promisify(exec);
 
 import { logError } from './errors';
 
-export async function getDeviceDetails() {
+export async function getDeviceDetails(): Promise<{
+    platform: string;
+    release: string;
+    runtimeArch: string;
+    realArch: string;
+}> {
     const [
         realArch,
         osDetails
@@ -33,7 +38,7 @@ async function getOsDetails() {
         // For Windows, the version numbers are oddly precise and weird. We simplify:
         return {
             platform: rawPlatform,
-            version: getWindowsVersion()
+            release: getWindowsVersion()
         };
     } else {
         return {
@@ -81,13 +86,13 @@ async function getLinuxOsDetails() {
 
         return {
             platform: osRelease['ID'] || osRelease['NAME'] || 'linux',
-            version: majorMinorOnly(osRelease['VERSION_ID'] || os.release())
+            release: majorMinorOnly(osRelease['VERSION_ID'] || os.release())
         };
     } catch (e) {
         logError(`Failed to detect Linux version: ${e.message}`);
         return {
             platform: 'linux',
-            version: majorMinorOnly(os.release())
+            release: majorMinorOnly(os.release())
         };
     }
 }
