@@ -3,7 +3,7 @@ const DEV_MODE = process.env.HTK_DEV === 'true';
 // Set up error handling before everything else:
 import { logError, addBreadcrumb } from './errors';
 
-import { spawn, exec, ChildProcess } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 import * as os from 'os';
 import { promises as fs, createWriteStream, WriteStream } from 'fs'
 import * as net from 'net';
@@ -18,7 +18,6 @@ import * as semver from 'semver';
 import * as rimraf from 'rimraf';
 
 const rmRF = promisify(rimraf);
-const execAsync = promisify(exec);
 
 import * as windowStateKeeper from 'electron-window-state';
 import { getSystemProxy } from 'os-proxy-config';
@@ -28,6 +27,7 @@ import { getDeferred, delay } from './util';
 import { getMenu, shouldAutoHideMenu } from './menu';
 import { ContextMenuDefinition, openContextMenu } from './context-menu';
 import { stopServer } from './stop-server';
+import { getDeviceDetails } from './device';
 
 const packageJson = require('../package.json');
 
@@ -650,54 +650,7 @@ ipcMain.handle('open-context-menu', ipcHandler((options: ContextMenuDefinition) 
 
 ipcMain.handle('get-desktop-version', ipcHandler(() => DESKTOP_VERSION));
 ipcMain.handle('get-server-auth-token', ipcHandler(() => AUTH_TOKEN));
-ipcMain.handle('get-device-info', ipcHandler(async () => {
-    const realArch = await getRealArch();
-
-    return {
-        platform: os.platform(),
-        release: os.release(),
-        runtimeArch: os.arch(),
-        realArch: realArch
-    }
-}));
-
-// Detect the 'real' architecture of the system. We're concerned here with detecting the real arch
-// despite emulation here, to help with launch subprocs. Not too worried about x86 vs x64.
-async function getRealArch() {
-    try {
-        switch (process.platform) {
-            case 'darwin':
-                const { stdout: armCheck } = await execAsync('sysctl -n hw.optional.arm64')
-                    .catch((e: any) => {
-                        const output = e.message + e.stdout + e.stderr;
-                        // This id may not be available:
-                        if (output?.includes?.("unknown oid")) return { stdout: "0" };
-                        else throw e;
-                    });
-                if (armCheck.trim() === '1') {
-                    return 'arm64';
-                }
-
-            case 'linux':
-                const { stdout: cpuInfo } = await execAsync('cat /proc/cpuinfo');
-                const lcCpuInfo = cpuInfo.toLowerCase();
-                if (lcCpuInfo.includes('aarch64') || lcCpuInfo.includes('arm64')) {
-                    return 'arm64';
-                }
-
-            case 'win32':
-                const arch = process.env.PROCESSOR_ARCHITEW6432 || process.env.PROCESSOR_ARCHITECTURE;
-                if (arch?.toLowerCase() === 'arm64') {
-                    return 'arm64';
-                }
-        }
-    } catch (e) {
-        console.warn(`Error querying system arch: ${e.message}`);
-        logError(e);
-    }
-
-    return os.arch();
-}
+ipcMain.handle('get-device-info', ipcHandler(() => getDeviceDetails()));
 
 let restarting = false;
 ipcMain.handle('restart-app', ipcHandler(() => {
