@@ -86,13 +86,13 @@ async function getLinuxOsDetails() {
 
         return {
             platform: osRelease['ID'] || osRelease['NAME'] || 'linux',
-            release: majorMinorOnly(osRelease['VERSION_ID'] || os.release())
+            release: majorMinorOnly(osRelease['VERSION_ID']) || 'Unknown'
         };
     } catch (e) {
         logError(`Failed to detect Linux version: ${e.message}`);
         return {
             platform: 'linux',
-            release: majorMinorOnly(os.release())
+            release: 'Unknown'
         };
     }
 }
