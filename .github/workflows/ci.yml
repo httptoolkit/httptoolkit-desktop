@@ -82,3 +82,22 @@ jobs:
         with:
           release_id: ${{ steps.create_release.outputs.id }}
           assets_path: ./*/
+  submit-winget:
+    name: Submit to WinGet repository
+    needs: publish
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    # wingetcreate only runs on Windows
+    runs-on: windows-latest
+    steps:
+      - name: Submit package using wingetcreate
+        run: |
+          $packageVersion = "${{ github.ref }}" -replace 'refs/tags/v', ''
+          $installerUrl = "https://github.com/httptoolkit/httptoolkit-desktop/releases/download/v$packageVersion/HttpToolkit-installer-$packageVersion.exe"
+
+          # Update package using wingetcreate
+          Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+          .\wingetcreate.exe update HTTPToolKit.HTTPToolKit `
+            --version $packageVersion `
+            --urls "$installerUrl|x64" `
+            --submit `
+            --token "${{ secrets.WINGET_GITHUB_TOKEN }}"
