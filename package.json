@@ -94,10 +94,12 @@
       "icon": "./src/icons/icon.svg",
       "maintainer": "contact@httptoolkit.tech",
       "desktop": {
-        "Name": "HTTP Toolkit",
-        "Comment": "HTTP(S) debugging, development & testing tool",
-        "Categories": "Development;Network",
-        "StartupNotify": true
+        "entry": {
+          "Name": "HTTP Toolkit",
+          "Comment": "HTTP(S) debugging, development & testing tool",
+          "Categories": "Development;Network",
+          "StartupNotify": true
+        }
       }
     },
     "deb": {
@@ -146,7 +148,7 @@
     "@types/yargs": "^15.0.3",
     "cross-env": "^7.0.3",
     "electron": "^31.7.6",
-    "electron-builder": "^24.13.3",
+    "electron-builder": "^26.0.2",
     "lodash": "^4.17.21",
     "node-fetch": "^2.6.7",
     "targz": "^1.0.1",
