@@ -7,11 +7,20 @@ jobs:
       matrix:
         include:
           - platform: linux
+            arch: x64
             os: "ubuntu-20.04"
+          - platform: linux
+            arch: arm64
+            os: "ubuntu-24.04-arm"
           - platform: windows
+            arch: x64
             os: "windows-2019"
           - platform: mac
+            arch: x64
             os: "macos-13"
+          - platform: mac
+            arch: arm64
+            os: "macos-14"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -52,7 +61,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.platform }}-distributables
+          name: ${{ matrix.platform }}-${{ matrix.arch }}-distributables
           path: dist/HttpToolkit-*
           if-no-files-found: error
   publish:
