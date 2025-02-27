@@ -112,7 +112,7 @@ jobs:
       - name: Submit package using wingetcreate
         run: |
           $packageVersion = "${{ github.ref }}" -replace 'refs/tags/v', ''
-          $installerUrl = "https://github.com/httptoolkit/httptoolkit-desktop/releases/download/v$packageVersion/HttpToolkit-installer-$packageVersion.exe"
+          $installerUrl = "https://github.com/httptoolkit/httptoolkit-desktop/releases/download/v$packageVersion/HttpToolkit-$packageVersion.exe"
 
           # Update package using wingetcreate
           Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
