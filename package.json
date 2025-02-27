@@ -53,6 +53,10 @@
     "extraResources": [
       "httptoolkit-server/**/*"
     ],
+    "artifactName": "HttpToolkit-${version}-${arch}.${ext}",
+    "zip": {
+      "artifactName": "HttpToolkit-${version}-${os}-${arch}.${ext}"
+    },
     "mac": {
       "target": [
         "dmg"
@@ -65,20 +69,18 @@
       "notarize": true
     },
     "dmg": {
-      "artifactName": "HttpToolkit-${version}.dmg"
     },
     "win": {
       "target": [
         "nsis",
         "zip"
       ],
-      "artifactName": "HttpToolkit-${os}-${arch}-${version}.${ext}",
       "icon": "./src/icons/icon.ico",
       "forceCodeSigning": true
     },
     "nsis": {
       "installerIcon": "./src/icons/icon.ico",
-      "artifactName": "HttpToolkit-installer-${version}.exe",
+      "artifactName": "HttpToolkit-${version}.exe",
       "deleteAppDataOnUninstall": true
     },
     "linux": {
@@ -89,7 +91,6 @@
         "zip"
       ],
       "executableName": "httptoolkit",
-      "artifactName": "HttpToolkit-${os}-${arch}-${version}.${ext}",
       "category": "Development",
       "icon": "./src/icons/icon.svg",
       "maintainer": "contact@httptoolkit.tech",
@@ -103,7 +104,6 @@
       }
     },
     "deb": {
-      "artifactName": "HttpToolkit-${version}.deb",
       "depends": [
         "libgtk-3-0",
         "libnotify4",
@@ -117,11 +117,7 @@
       ]
     },
     "rpm": {
-      "artifactName": "HttpToolkit-${version}.rpm",
       "afterRemove": "scripts/post-uninstall-rpm.sh"
-    },
-    "appImage": {
-      "artifactName": "HttpToolkit-${version}.AppImage"
     },
     "publish": null
   },
