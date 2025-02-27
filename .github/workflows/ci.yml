@@ -94,6 +94,16 @@ jobs:
           release_name: ${{ github.ref }}
           prerelease: true
 
+      - name: Normalize arch names to x64 or arm64
+        run: |
+          find . -maxdepth 2 -type f -name "*" | while read -r file; do
+            filename=$(basename "$file")
+            newname=$(echo "$filename" | sed -e 's/amd64/x64/g' -e 's/x86_64/x64/g' -e 's/aarch64/arm64/g')
+            if [ "$filename" != "$newname" ]; then
+              mv -v "$file" "$newname"
+            fi
+          done
+
       - name: Upload Release Assets
         id: upload-release-assets
         uses: dwenegar/upload-release-assets@v1
