@@ -37,6 +37,15 @@ jobs:
         with:
           python-version: '3.11'
 
+      # Due to https://github.com/electron-userland/electron-builder/issues/3901
+      # Electron-Builder fails to produce deb packages on arm64 without this:
+      - name: Install system FPM to fix ARM64 Linux builds
+        if: matrix.platform == 'linux' && matrix.arch == 'arm64'
+        run: |
+          sudo apt-get update
+          sudo apt-get install ruby ruby-dev build-essential
+          sudo gem install --no-document fpm
+
       - run: npm ci
 
       # The API key in APPLE_API_KEY is a PEM cert that must be read from disk:
@@ -58,6 +67,8 @@ jobs:
           # For Windows signing:
           WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          # Workaround - see FPM install step above
+          USE_SYSTEM_FPM: ${{ matrix.platform == 'linux' && matrix.arch == 'arm64' }}
 
       - uses: actions/upload-artifact@v4
         with:
