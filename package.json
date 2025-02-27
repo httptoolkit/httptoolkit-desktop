@@ -2,7 +2,7 @@
   "name": "httptoolkit-desktop",
   "productName": "HTTP Toolkit",
   "version": "1.19.5",
-  "homepage": "https://httptoolkit.tech",
+  "homepage": "https://httptoolkit.com",
   "private": true,
   "description": "HTTP(S) debugging, development & testing tool",
   "main": "build/index.js",
@@ -30,7 +30,8 @@
     "productName": "HTTP Toolkit",
     "extraMetadata": {
       "name": "httptoolkit",
-      "productName": "httptoolkit"
+      "productName": "httptoolkit",
+      "author": "Toolshed Labs SLU"
     },
     "files": [
       "**/*",
@@ -90,7 +91,7 @@
       "executableName": "httptoolkit",
       "category": "Development",
       "icon": "./src/icons/icon.svg",
-      "maintainer": "contact@httptoolkit.tech",
+      "maintainer": "contact@httptoolkit.com",
       "desktop": {
         "entry": {
           "Name": "HTTP Toolkit",

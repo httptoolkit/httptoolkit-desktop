@@ -1,7 +1,7 @@
 HTTP Toolkit Desktop [![Build Status](https://github.com/httptoolkit/httptoolkit-desktop/workflows/CI/badge.svg)](https://github.com/httptoolkit/httptoolkit-desktop/actions)
 ===================
 
-This repo contains the desktop build setup for [HTTP Toolkit](https://httptoolkit.tech), a beautiful, cross-platform & open-source HTTP(S) debugging proxy, analyzer & client.
+This repo contains the desktop build setup for [HTTP Toolkit](https://httptoolkit.com), a beautiful, cross-platform & open-source HTTP(S) debugging proxy, analyzer & client.
 
 Looking to file bugs, request features or send feedback? File an issue or vote on existing ones at [github.com/httptoolkit/httptoolkit](https://github.com/httptoolkit/httptoolkit).
 
@@ -56,7 +56,7 @@ A few tips:
 
 The HTTP Toolkit desktop application source code is licensed under AGPL-3.0, [as documented in this repo](/LICENSE).
 
-The binary downloads available in this repo or from [httptoolkit.tech](https://httptoolkit.tech) however may be used under one of two licenses: 
+The binary downloads available in this repo or from [httptoolkit.com](https://httptoolkit.com) however may be used under one of two licenses: 
 
 * [AGPL-3.0](/LICENSE), for those who want to modify and redistribute them, within the constraints of that license.
 * [Creative Commons Attribution-NoDerivatives 4.0 International License](https://creativecommons.org/licenses/by-nd/4.0/) for those who don't need those rights and want to avoid any concerns about AGPL licensing.

@@ -52,7 +52,7 @@ export const getMenu = (browserWindows: Electron.BrowserWindow[]) => {
             submenu: [
                 {
                     label: 'Open Documentation',
-                    click () { require('electron').shell.openExternal('https://httptoolkit.tech/docs') }
+                    click () { require('electron').shell.openExternal('https://httptoolkit.com/docs') }
                 },
                 {
                     label: 'Share Your Feedback',
