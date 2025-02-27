@@ -75,6 +75,33 @@ jobs:
           name: ${{ matrix.platform }}-${{ matrix.arch }}-distributables
           path: dist/HttpToolkit-*
           if-no-files-found: error
+  wip-publish-test:
+    name: Fake test publish
+    runs-on: "ubuntu-24.04"
+    if: github.event_name == 'push' && github.ref == 'refs/heads/arm64-test'
+    steps:
+      - name: Get all distributables
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: arm64-test-release
+          release_name: arm64-test-release
+          prerelease: true
+
+      - name: Upload Release Assets
+        id: upload-release-assets
+        uses: dwenegar/upload-release-assets@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release_id: ${{ steps.create_release.outputs.id }}
+          assets_path: ./*/
+
   publish:
     name: Publish a release
     runs-on: "ubuntu-20.04"
