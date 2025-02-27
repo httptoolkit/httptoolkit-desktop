@@ -141,25 +141,10 @@ if (!amMainInstance) {
     const logStream = createWriteStream(LAST_RUN_LOG_PATH);
     logStream.write(`--- Launching HTTP Toolkit desktop v${DESKTOP_VERSION} at ${new Date().toISOString()} ---\n`);
 
-    const args = yargs
-        .option('with-forwarding', {
-            type: 'string',
-            hidden: true,
-            description: "Preconfigure a forwarding address, for integration with other tools."
-        })
+    yargs
         .version(DESKTOP_VERSION)
         .help()
         .argv;
-
-    if (
-        args['with-forwarding'] && (
-            !args['with-forwarding'].includes('|') ||
-            args['with-forwarding'].match(/'"\n/)
-        )
-    ) {
-        console.error('Invalid --with-forwarding argument');
-        process.exit(1); // Safe to hard exit - we haven't opened/started anything yet.
-    }
 
     let serverKilled = false;
     app.on('will-quit', async (event) => {
@@ -207,8 +192,6 @@ if (!amMainInstance) {
             // gets replaced on first navigation (immediately), whilst global
             // vars like this are forever.
             injectValue('httpToolkitAuthToken', AUTH_TOKEN);
-
-            if (args['with-forwarding']) injectValue('httpToolkitForwardingDefault', args['with-forwarding']);
         });
 
         // Redirect all navigations & new windows to the system browser
