@@ -139,7 +139,7 @@ if (!amMainInstance) {
     app.quit();
 } else {
     const logStream = createWriteStream(LAST_RUN_LOG_PATH);
-    logStream.write(`--- Launching HTTP Toolkit desktop v${DESKTOP_VERSION} ---\n`);
+    logStream.write(`--- Launching HTTP Toolkit desktop v${DESKTOP_VERSION} at ${new Date().toISOString()} ---\n`);
 
     const args = yargs
         .option('with-forwarding', {
@@ -361,6 +361,8 @@ if (!amMainInstance) {
             console.log('All server versions installed are outdated, deleting');
             await rmRF(serverUpdatesPath);
         }
+
+        logStream.write('Server cleanup check completed\n');
     }
 
     // When run *before* the server starts, this allows us to check whether the port is already in use,
@@ -381,11 +383,13 @@ if (!amMainInstance) {
             delay(100)
         ])
         .finally(() => {
+            logStream.write('Port check completed\n');
             conn.destroy();
         });
     }
 
     async function startServer(retries = 2) {
+        logStream.write('Starting server\n');
         const binName = isWindows ? 'httptoolkit-server.cmd' : 'httptoolkit-server';
         const serverBinPath = path.join(RESOURCES_PATH, 'httptoolkit-server', 'bin', binName);
         const serverBinCommand = isWindows ? `"${serverBinPath}"` : serverBinPath;
@@ -423,7 +427,15 @@ if (!amMainInstance) {
         serverStdout.pipe(logStream);
         serverStderr.pipe(logStream);
 
+        const startTime = Date.now();
+        let seenOutput = false;
         server.stdout!.on('data', (data) => {
+            // Server always produces output immediately, which works nicely to detect actual start time (and
+            // any issues due to AV scans or similar).
+            if (!seenOutput) {
+                seenOutput = true;
+                console.log(`Server took ${Date.now() - startTime}ms to begin startup`);
+            }
             addBreadcrumb({ category: 'server-stdout', message: data.toString('utf8'), level: <any>'info' });
         });
 
