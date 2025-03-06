@@ -112,6 +112,8 @@ async function getRealArch() {
                     });
                 if (armCheck.trim() === '1') {
                     return 'arm64';
+                } else {
+                    break;
                 }
 
             case 'linux':
@@ -119,12 +121,16 @@ async function getRealArch() {
                 const lcCpuInfo = cpuInfo.toLowerCase();
                 if (lcCpuInfo.includes('aarch64') || lcCpuInfo.includes('arm64')) {
                     return 'arm64';
+                } else {
+                    break;
                 }
 
             case 'win32':
                 const arch = process.env.PROCESSOR_ARCHITEW6432 || process.env.PROCESSOR_ARCHITECTURE;
                 if (arch?.toLowerCase() === 'arm64') {
                     return 'arm64';
+                } else {
+                    break;
                 }
         }
     } catch (e) {
