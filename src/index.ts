@@ -58,7 +58,10 @@ let server: ChildProcess | null = null;
 
 app.commandLine.appendSwitch('ignore-connections-limit', 'app.httptoolkit.tech');
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
-app.commandLine.appendSwitch('js-flags', '--expose-gc'); // Expose window.gc in the UI
+app.commandLine.appendSwitch('js-flags', [
+    '--expose-gc', // Expose window.gc in the UI
+    '--max-old-space-size=16384', // Increase max UI memory, to support very large sessions
+].join(' '));
 
 const createWindow = (logStream: WriteStream) => {
     // Load the previous window state, falling back to defaults
