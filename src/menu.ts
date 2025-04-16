@@ -39,14 +39,6 @@ export const getMenu = (browserWindows: Electron.BrowserWindow[]) => {
             ]
         },
         {
-            label: '&Window',
-            role: 'window',
-            submenu: [
-                { role: 'minimize' },
-                { role: 'close' }
-            ]
-        },
-        {
             label: '&Help',
             role: 'help',
             submenu: [
