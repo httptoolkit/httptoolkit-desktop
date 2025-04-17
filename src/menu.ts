@@ -114,6 +114,7 @@ export const getMenu = (browserWindows: Electron.BrowserWindow[]) => {
         (menuTemplate[2].submenu as MenuItemConstructorOptions[]).push({
             type: 'checkbox',
             label: 'Autohide Menu Bar',
+            sublabel: 'Reveal with Alt',
             checked: shouldAutoHideMenu(),
             click: (event) => {
                 const shouldAutoHide = event.checked || false;
