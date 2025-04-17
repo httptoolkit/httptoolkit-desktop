@@ -572,15 +572,17 @@ if (!amMainInstance) {
     });
 
     Promise.all([appReady.promise, portCheck]).then(() => {
-        Menu.setApplicationMenu(getMenu(windows));
+        Menu.setApplicationMenu(
+            getMenu(windows, openNewWindow)
+        );
         createWindow(logStream);
     });
 
+    const openNewWindow = () => appReady.promise.then(() => createWindow(logStream));
+
     // We use a single process instance to manage the server, but we
     // do allow multiple windows.
-    app.on('second-instance', () =>
-        appReady.promise.then(() => createWindow(logStream))
-    );
+    app.on('second-instance', openNewWindow);
 
     app.on('activate', () => {
         // On OS X it's common to re-create a window in the app when the
