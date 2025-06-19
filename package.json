@@ -22,7 +22,7 @@
   "author": "Tim Perry",
   "license": "AGPL-3.0-or-later",
   "config": {
-    "httptoolkit-server-version": "1.20.1"
+    "httptoolkit-server-version": "1.21.1"
   },
   "build": {
     "appId": "tech.httptoolkit.desktop",
