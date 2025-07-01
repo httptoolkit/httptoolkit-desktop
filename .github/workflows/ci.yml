@@ -14,7 +14,7 @@ jobs:
             os: "ubuntu-24.04-arm"
           - platform: windows
             arch: x64
-            os: "windows-2019"
+            os: "windows-2022"
           - platform: mac
             arch: x64
             os: "macos-13"
