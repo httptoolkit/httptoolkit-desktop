@@ -16,6 +16,7 @@ interface ContextMenuOption {
     id: string;
     label: string;
     enabled?: boolean;
+    accelerator?: string;
 }
 
 interface ContextMenuSubmenu {
@@ -66,7 +67,8 @@ function buildContextMenuOption(option: ContextMenuOption, callback: ContextMenu
         id: option.id,
         label: option.label,
         enabled: option.enabled,
-        click: callback
+        click: callback,
+        accelerator: option.accelerator
     });
 }
 
