@@ -17,6 +17,11 @@ interface ContextMenuOption {
     label: string;
     enabled?: boolean;
     accelerator?: string;
+    optionType?:
+        | 'checkbox'
+        | 'radio'
+        | 'normal';
+    checked?: boolean; // only for checkbox/radio type
 }
 
 interface ContextMenuSubmenu {
@@ -63,12 +68,15 @@ function buildContextMenuItem(item: ContextMenuItem, callback: ContextMenuCallba
 
 function buildContextMenuOption(option: ContextMenuOption, callback: ContextMenuCallback) {
     return new Electron.MenuItem({
-        type: 'normal',
+        type: option.optionType || 'normal',
         id: option.id,
         label: option.label,
         enabled: option.enabled,
         click: callback,
-        accelerator: option.accelerator
+        accelerator: option.accelerator,
+        checked: (option.optionType === 'checkbox' || option.optionType === 'radio')
+            ? !!option.checked
+            : undefined
     });
 }
 
