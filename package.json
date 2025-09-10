@@ -78,7 +78,11 @@
     "nsis": {
       "installerIcon": "./src/icons/icon.ico",
       "artifactName": "HttpToolkit-${version}.exe",
-      "deleteAppDataOnUninstall": true
+      "deleteAppDataOnUninstall": true,
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "allowElevation": true
     },
     "linux": {
       "target": [
