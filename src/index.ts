@@ -100,14 +100,8 @@ const createWindow = (logStream: WriteStream) => {
     windowState.manage(window);
 
     // Stream renderer console output directly into our log file:
-    window.webContents.on('console-message', (_event, level, message) => {
-        const levelName = [
-            'VERBOSE',
-            'INFO',
-            'WARN',
-            'ERROR'
-        ][level];
-        logStream.write(`${levelName}: ${message}\n`);
+    window.webContents.on('console-message', ({ level, message }) => {
+        logStream.write(`${level}: ${message}\n`);
     });
 
     // Limit permissions to our trusted origin only. This shouldn't be required (we don't allow loading
@@ -609,8 +603,8 @@ const ipcHandler = <A, R>(fn: (...args: A[]) => R) => (
     event: Electron.IpcMainInvokeEvent,
     ...args: A[]
 ): R => {
-    if (!hasTrustedOrigin(new URL(event.senderFrame.url))) {
-        throw new Error(`Invalid IPC sender URL: ${event.senderFrame.url}`);
+    if (!event.senderFrame || !hasTrustedOrigin(new URL(event.senderFrame.url))) {
+        throw new Error(`Invalid IPC sender URL: ${event.senderFrame?.url}`);
     } else {
         return fn(...args);
     }

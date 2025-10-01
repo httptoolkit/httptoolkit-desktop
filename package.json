@@ -150,7 +150,7 @@
     "@types/targz": "^1.0.0",
     "@types/yargs": "^15.0.3",
     "cross-env": "^7.0.3",
-    "electron": "^31.7.6",
+    "electron": "^37.6.0",
     "electron-builder": "^26.0.2",
     "lodash": "^4.17.21",
     "node-fetch": "^2.6.7",
