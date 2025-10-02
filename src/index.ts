@@ -631,6 +631,13 @@ ipcMain.handle('select-file-path', ipcHandler(async () => {
     else return result.filePaths[0];
 }));
 
+ipcMain.handle('select-save-file-path', ipcHandler(async () => {
+    const result = await dialog.showSaveDialog({});
+
+    if (!result || result.canceled) return undefined;
+    else return result.filePath;
+}));
+
 // Enable the default context menu
 registerContextMenu({
     showSaveImageAs: true,
