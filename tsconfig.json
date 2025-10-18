@@ -15,8 +15,10 @@
         "noEmitHelpers": true,
         "module": "commonjs",
         "moduleResolution": "node",
+        "skipLibCheck": true,
+        "types": ["node"],
         "pretty": true,
-        "target": "ES2015",
+        "target": "ES2022",
         "jsx": "react"
     },
     "formatCodeOptions": {

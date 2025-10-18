@@ -9,15 +9,12 @@ import { promises as fs, createWriteStream, WriteStream } from 'fs'
 import * as net from 'net';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import { promisify } from 'util';
 import * as querystring from 'querystring';
 import { URL } from 'url';
 import { app, BrowserWindow, shell, Menu, dialog, session, ipcMain } from 'electron';
 import * as yargs from 'yargs';
 import * as semver from 'semver';
-import * as rimraf from 'rimraf';
-
-const rmRF = promisify(rimraf);
+const rmRF = (p: string) => fs.rm(p, { recursive: true, force: true });
 
 import * as windowStateKeeper from 'electron-window-state';
 import { getSystemProxy } from 'os-proxy-config';
