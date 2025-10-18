@@ -1,20 +1,18 @@
 import * as path from 'path';
 import * as os from 'os';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import { promisify } from 'util';
 
 import * as _ from 'lodash';
 import * as semver from 'semver';
 import fetch from 'node-fetch';
-import rimraf from 'rimraf';
 import * as targz from 'targz';
 import { execSync } from 'child_process';
 
 const extractTarGz = promisify(targz.decompress);
-const deleteFile = promisify(fs.unlink);
 
-const canAccess = (path: string) => promisify(fs.access)(path).then(() => true).catch(() => false);
-const deleteDir = promisify(rimraf);
+const canAccess = (path: string) => fs.access(path).then(() => true).catch(() => false);
+const deleteDir = (p: string) => fs.rm(p, { recursive: true, force: true });
 
 const packageJson = require('./package.json');
 const requiredServerVersion = 'v' + packageJson.config['httptoolkit-server-version'];
@@ -109,7 +107,7 @@ async function insertServer(
             }
         }
     });
-    await deleteFile(downloadPath);
+    await fs.unlink(downloadPath);
 
     console.log('Server download completed');
 }

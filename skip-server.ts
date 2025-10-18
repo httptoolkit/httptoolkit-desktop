@@ -1,13 +1,8 @@
-import { promisify } from 'util';
 import * as path from 'path';
-import * as fs from 'fs';
-import rimraf from 'rimraf';
+import * as fs from "fs/promises";
 
-const canAccess = (file: string) => promisify(fs.access)(file).then(() => true).catch(() => false);
-const deleteDir = promisify(rimraf);
-const mkdir = promisify(fs.mkdir);
-const writeFile = promisify(fs.writeFile);
-const chmod = promisify(fs.chmod);
+const canAccess = (file: string) => fs.access(file).then(() => true).catch(() => false);
+const deleteDir = (p: string) => fs.rm(p, { recursive: true, force: true });
 
 // For a full local dev environment, we want to use a standalone UI & server running externally.
 // This lets us edit both and the desktop together. We do this by creating a fake server,
@@ -19,18 +14,18 @@ async function setUpDevEnv() {
     if (serverExists) await deleteDir(serverFolder);
 
     const binFolder = path.join(serverFolder, 'bin');
-    await mkdir(binFolder, { recursive: true });
+    await fs.mkdir(binFolder, { recursive: true });
 
     // Create a node/*nix-runnable fake-server that just sleeps forever:
     const script = path.join(binFolder, "httptoolkit-server");
-    await writeFile(script, `#!/usr/bin/env node
+    await fs.writeFile(script, `#!/usr/bin/env node
         setInterval(() => {}, 999999999);
     `);
-    await chmod(script, 0o755);
+    await fs.chmod(script, 0o755);
 
     // Create a windows wrapper for that script:
     const winWrapper = path.join(binFolder, "httptoolkit-server.cmd");
-    await writeFile(winWrapper, `node "%~dp0\\httptoolkit-server" %*`);
+    await fs.writeFile(winWrapper, `node "%~dp0\\httptoolkit-server" %*`);
 }
 
 setUpDevEnv().catch(e => {
