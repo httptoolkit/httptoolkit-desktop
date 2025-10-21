@@ -31,32 +31,13 @@ The builds themselves are done on GitHub Actions, and tagged `main` builds are a
 
 If you want to change the behaviour of the HTTP Toolkit desktop shell (but not its contents), change how it's built, or add a new target platform or format, then you're in the right place :+1:.
 
-To get started:
-
-* Clone this repo.
-* `npm install`
-* To build & run the electron app locally:
-    * `npm start` - runs the desktop app, downloading the latest live server & using the live UI from `app.httptoolkit.tech`.
-        * This is useful if you're working on just the desktop app, and want to see your changes with the real live environment.
-    * `npm run start:dev` - runs the desktop app, with no built-in server using the UI from `localhost:8080`
-        * This effectively assumes you're bringing your own working UI & server, and is useful for working on this.
-        * You can start both from the [UI project](https://github.com/httptoolkit/httptoolkit-ui) with just `npm start`, to work on the UI within the desktop app.
-        * Alternatively, you can run `npm start` in the [server project](https://github.com/httptoolkit/httptoolkit-server), and `npm run start:web` in the UI project, to work on the server or both.
-* To build distributable packages:
-    * `npm run build` - this will attempt to build & package the desktop app for your current platform
-
-A few tips:
-
-* Electron dev behaviour isn't identical to production build behaviour, make sure you check your changes in a real built version.
-* Most distributable build configuration is in under the `build` field in [`package.json`](./package.json).
- * To fully build packages, you may find some platforms complain about that signing certificates are required. You'll probably need to unset fields like `forceCodeSigning` to disable that.
-* In CI, pull requests don't receive secret environment variables, so builds may fail. Confirm that that's what's happening, and if so that's ok - the team will manually build & evaluate PR changes to resolve this.
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to get started contributing to this repo.
 
 ## License
 
 The HTTP Toolkit desktop application source code is licensed under AGPL-3.0, [as documented in this repo](/LICENSE).
 
-The binary downloads available in this repo or from [httptoolkit.com](https://httptoolkit.com) however may be used under one of two licenses: 
+The binary downloads available in this repo or from [httptoolkit.com](https://httptoolkit.com) however may be used under one of two licenses:
 
 * [AGPL-3.0](/LICENSE), for those who want to modify and redistribute them, within the constraints of that license.
 * [Creative Commons Attribution-NoDerivatives 4.0 International License](https://creativecommons.org/licenses/by-nd/4.0/) for those who don't need those rights and want to avoid any concerns about AGPL licensing.
