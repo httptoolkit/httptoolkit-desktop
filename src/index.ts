@@ -16,7 +16,7 @@ import * as yargs from 'yargs';
 import * as semver from 'semver';
 const rmRF = (p: string) => fs.rm(p, { recursive: true, force: true });
 
-import * as windowStateKeeper from 'electron-window-state';
+import windowStateKeeper from 'electron-window-state';
 import { getSystemProxy } from 'os-proxy-config';
 import registerContextMenu = require('electron-context-menu');
 
