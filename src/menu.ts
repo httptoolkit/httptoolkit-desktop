@@ -1,6 +1,6 @@
 import * as path from 'path';
 import { app, Menu, MenuItemConstructorOptions } from 'electron';
-import * as ElectronStore from 'electron-store';
+import ElectronStore from 'electron-store';
 
 const store = new ElectronStore();
 const AUTO_HIDE_SETTING_KEY = "autoHideMenuBar";

@@ -1,20 +1,18 @@
 import * as path from 'path';
 import * as os from 'os';
-import * as fs from 'fs';
+import { promises as fs, createWriteStream } from 'fs'
 import { promisify } from 'util';
 
 import * as _ from 'lodash';
 import * as semver from 'semver';
 import fetch from 'node-fetch';
-import rimraf from 'rimraf';
 import * as targz from 'targz';
 import { execSync } from 'child_process';
 
 const extractTarGz = promisify(targz.decompress);
-const deleteFile = promisify(fs.unlink);
 
-const canAccess = (path: string) => promisify(fs.access)(path).then(() => true).catch(() => false);
-const deleteDir = promisify(rimraf);
+const canAccess = (path: string) => fs.access(path).then(() => true).catch(() => false);
+const deleteDir = (p: string) => fs.rm(p, { recursive: true, force: true });
 
 const packageJson = require('./package.json');
 const requiredServerVersion = 'v' + packageJson.config['httptoolkit-server-version'];
@@ -90,9 +88,9 @@ async function insertServer(
     const downloadPath = path.join(buildPath, 'httptoolkit-server.tar.gz');
 
     const assetDownload = await fetch(asset.browser_download_url);
-    const assetWrite = assetDownload.body.pipe(fs.createWriteStream(downloadPath));
+    const assetWrite = assetDownload.body.pipe(createWriteStream(downloadPath));
 
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
         assetWrite.on('finish', resolve);
         assetWrite.on('error', reject);
     });
@@ -109,7 +107,7 @@ async function insertServer(
             }
         }
     });
-    await deleteFile(downloadPath);
+    await fs.unlink(downloadPath);
 
     console.log('Server download completed');
 }
