@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as os from 'os';
-import { promises as fs } from 'fs'
+import { promises as fs, createWriteStream } from 'fs'
 import { promisify } from 'util';
 
 import * as _ from 'lodash';
@@ -88,9 +88,9 @@ async function insertServer(
     const downloadPath = path.join(buildPath, 'httptoolkit-server.tar.gz');
 
     const assetDownload = await fetch(asset.browser_download_url);
-    const assetWrite = assetDownload.body.pipe(fs.createWriteStream(downloadPath));
+    const assetWrite = assetDownload.body.pipe(createWriteStream(downloadPath));
 
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
         assetWrite.on('finish', resolve);
         assetWrite.on('error', reject);
     });
