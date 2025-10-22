@@ -27,13 +27,11 @@ To get started
 A few tips
 
 - Electron dev behaviour isn't identical to production build behaviour — verify changes in a real built version too.
-- Most distributable build configuration lives in the `build` field of `package.json`.
-  - On some platforms, building packages may require signing certificates; you can disable signing-related fields (for example `forceCodeSigning`) locally if needed.
-- CI pull requests do not receive secret environment variables, so packaging-related builds may fail in CI for PRs. This is expected — maintainers will manually build and evaluate such PR changes when necessary.
+- Most distributable build configuration lives in the `build` field of `package.json`.- CI pull requests do not receive secret environment variables, so packaging-related builds may fail in CI for PRs. This is expected — maintainers will manually build and evaluate such PR changes when necessary.
 
 Reporting issues
 
-- For bugs or feature requests related to HTTP Toolkit itself, prefer filing issues at the main repo: https://github.com/httptoolkit/httptoolkit-server/
+- For bugs or feature requests related to HTTP Toolkit itself, prefer filing issues at the main repo: https://github.com/httptoolkit/httptoolkit/
 - For issues specific to this desktop shell (packaging, Electron behaviour, installers), open an issue in this repo.
 
 Making changes & pull requests
