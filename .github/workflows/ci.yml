@@ -1,5 +1,7 @@
 name: CI
-on: push
+on:
+  - push
+  - pull_request
 jobs:
   build:
     name: Build & test
@@ -43,13 +45,18 @@ jobs:
       - run: npm ci
 
       # The API key in APPLE_API_KEY is a PEM cert that must be read from disk:
-      - run: echo "$APPLE_API_KEY" > ./apple-api-key.p8
-        if: startsWith(matrix.os, 'macos-')
+      - name: Prepare Apple API key
+        run: echo "$APPLE_API_KEY" > ./apple-api-key.p8
+        if: github.event_name == 'push' && startsWith(matrix.os, 'macos-')
         env:
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
 
-      - run: npm run build
+      # On push we do signed builds, on PRs we do unsigned builds only (next step)
+      - name: Run signed build
+        if: github.event_name == 'push'
+        run: npm run build
         env:
+          ENABLE_SIGNING: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # For Mac notarization:
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
@@ -62,6 +69,14 @@ jobs:
           WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
           # Workaround - see FPM install step above
+          USE_SYSTEM_FPM: ${{ matrix.platform == 'linux' && matrix.arch == 'arm64' }}
+
+      - name: Run unsigned build
+        if: github.event_name != 'push'
+        run: npm run build
+        env:
+          ENABLE_SIGNING: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USE_SYSTEM_FPM: ${{ matrix.platform == 'linux' && matrix.arch == 'arm64' }}
 
       - uses: actions/upload-artifact@v4
