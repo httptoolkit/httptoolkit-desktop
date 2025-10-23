@@ -27,7 +27,7 @@ To get started
 A few tips
 
 - Electron dev behaviour isn't identical to production build behaviour — verify changes in a real built version too.
-- Most distributable build configuration lives in the `build` field of `package.json`.- CI pull requests do not receive secret environment variables, so packaging-related builds may fail in CI for PRs. This is expected — maintainers will manually build and evaluate such PR changes when necessary.
+- Most distributable build configuration lives in the `build` field of `package.json`.
 
 Reporting issues
 
