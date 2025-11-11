@@ -126,7 +126,11 @@
     "appImage": {
       "artifactName": "HttpToolkit-${version}-${arch}.${ext}"
     },
-    "publish": null
+    "publish": null,
+    "electronFuses": {
+      "enableCookieEncryption": true,
+      "onlyLoadAppFromAsar": true
+    }
   },
   "dependencies": {
     "@sentry/electron": "^4.0.0",
