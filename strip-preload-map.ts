@@ -20,5 +20,5 @@ function removeSourceMapAnnotation(filePath: string): void {
 // We have to strip the source map comment from here, otherwise when it loads
 // in Chrome, it tries to get preload.js.map from the real server, leaving
 // us with an annoying error because that's never going to work.
-const filePath = path.join(__dirname, 'build', 'preload.js');
+const filePath = path.join(import.meta.dirname, 'build', 'preload.js');
 removeSourceMapAnnotation(filePath);

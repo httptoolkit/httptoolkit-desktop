@@ -1,7 +1,7 @@
 const DEV_MODE = process.env.HTK_DEV === 'true';
 
 // Set up error handling before everything else:
-import { logError, addBreadcrumb } from './errors';
+import { logError, addBreadcrumb } from './errors.ts';
 
 import { spawn, ChildProcess } from 'child_process';
 import * as os from 'os';
@@ -12,22 +12,22 @@ import * as crypto from 'crypto';
 import * as querystring from 'querystring';
 import { URL } from 'url';
 import { app, BrowserWindow, shell, Menu, dialog, session, ipcMain } from 'electron';
-import * as yargs from 'yargs';
+import yargs from 'yargs';
 import * as semver from 'semver';
 const rmRF = (p: string) => fs.rm(p, { recursive: true, force: true });
 
 import windowStateKeeper from 'electron-window-state';
 import { getSystemProxy } from 'os-proxy-config';
-import registerContextMenu = require('electron-context-menu');
+import registerContextMenu from 'electron-context-menu';
 import * as sudoPrompt from '@expo/sudo-prompt';
 import { getDeferred, delay, ErrorLike } from '@httptoolkit/util';
 
-import { getMenu, shouldAutoHideMenu } from './menu';
-import { ContextMenuDefinition, openContextMenu } from './context-menu';
-import { stopServer } from './stop-server';
-import { getDeviceDetails } from './device';
+import { getMenu, shouldAutoHideMenu } from './menu.ts';
+import { ContextMenuDefinition, openContextMenu } from './context-menu.ts';
+import { stopServer } from './stop-server.ts';
+import { getDeviceDetails } from './device.ts';
 
-const packageJson = require('../package.json');
+import packageJson from '../package.json' with { type: 'json' };
 
 const isWindows = os.platform() === 'win32';
 
@@ -81,7 +81,7 @@ const createWindow = (logStream: WriteStream) => {
         height: windowState.height,
 
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
+            preload: path.join(import.meta.dirname, 'preload.js'),
             contextIsolation: true,
             nodeIntegration: false
         },

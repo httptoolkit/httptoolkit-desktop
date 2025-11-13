@@ -8,7 +8,7 @@ const deleteDir = (p: string) => fs.rm(p, { recursive: true, force: true });
 // This lets us edit both and the desktop together. We do this by creating a fake server,
 // which doesn't exit, but otherwise does nothing.
 async function setUpDevEnv() {
-    const serverFolder = path.join(__dirname, 'httptoolkit-server');
+    const serverFolder = path.join(import.meta.dirname, 'httptoolkit-server');
     const serverExists = await canAccess(serverFolder);
 
     if (serverExists) await deleteDir(serverFolder);

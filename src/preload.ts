@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
-import type { ContextMenuDefinition } from './context-menu';
+import type { ContextMenuDefinition } from './context-menu.ts';
 
 // These are technically asynchronous, but they're so fast that
 // they're effectively sychronously available - this seems to

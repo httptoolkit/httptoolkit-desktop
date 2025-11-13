@@ -14,10 +14,10 @@ if (!DEV_MODE) {
                 // errors unnecessarily distinct, especially on Windows.
                 root: process.platform === 'win32'
                     // Root must always be POSIX format, so we transform it on Windows:
-                    ? __dirname
+                    ? import.meta.dirname
                         .replace(/^[A-Z]:/, '') // remove Windows-style prefix
                         .replace(/\\/g, '/') // replace all `\\` instances with `/`
-                    :  __dirname
+                    : import.meta.dirname
             })
         ]
     });

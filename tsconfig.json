@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "rootDir": "./src",
         "outDir": "./build",
         "removeComments": false,
         "preserveConstEnums": true,
@@ -15,6 +16,8 @@
         "noEmitHelpers": true,
         "module": "node20",
         "moduleResolution": "nodenext",
+        "rewriteRelativeImportExtensions": true,
+        "skipLibCheck": true,
         "types": ["node"],
         "pretty": true,
         "target": "ES2022",

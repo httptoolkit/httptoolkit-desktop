@@ -4,7 +4,7 @@ import { promisify } from 'util';
 import { exec } from 'child_process';
 const execAsync = promisify(exec);
 
-import { logError } from './errors';
+import { logError } from './errors.ts';
 
 export async function getDeviceDetails(): Promise<{
     platform: string;
