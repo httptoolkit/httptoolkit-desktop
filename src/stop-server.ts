@@ -1,7 +1,7 @@
 import * as ChildProcess from 'child_process';
 import * as http from 'http';
 
-import { delay } from './util';
+import { delay } from '@httptoolkit/util';
 
 const isRunning = (pid: number) => {
     try {

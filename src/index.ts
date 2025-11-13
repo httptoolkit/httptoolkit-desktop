@@ -19,8 +19,8 @@ const rmRF = (p: string) => fs.rm(p, { recursive: true, force: true });
 import windowStateKeeper from 'electron-window-state';
 import { getSystemProxy } from 'os-proxy-config';
 import registerContextMenu = require('electron-context-menu');
+import { getDeferred, delay } from '@httptoolkit/util';
 
-import { getDeferred, delay } from './util';
 import { getMenu, shouldAutoHideMenu } from './menu';
 import { ContextMenuDefinition, openContextMenu } from './context-menu';
 import { stopServer } from './stop-server';

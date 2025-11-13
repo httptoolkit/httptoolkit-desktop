@@ -1,5 +1,5 @@
 import * as Electron from 'electron';
-import { UnreachableCheck } from './util';
+import { UnreachableCheck } from '@httptoolkit/util';
 
 export interface ContextMenuDefinition {
     position: { x: number; y: number };
