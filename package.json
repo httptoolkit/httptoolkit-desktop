@@ -129,6 +129,7 @@
     "publish": null
   },
   "dependencies": {
+    "@expo/sudo-prompt": "^9.3.2",
     "@httptoolkit/util": "^0.1.8",
     "@sentry/electron": "^4.0.0",
     "@sentry/integrations": "^7.8.1",

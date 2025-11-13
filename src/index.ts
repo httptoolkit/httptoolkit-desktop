@@ -19,7 +19,8 @@ const rmRF = (p: string) => fs.rm(p, { recursive: true, force: true });
 import windowStateKeeper from 'electron-window-state';
 import { getSystemProxy } from 'os-proxy-config';
 import registerContextMenu = require('electron-context-menu');
-import { getDeferred, delay } from '@httptoolkit/util';
+import * as sudoPrompt from '@expo/sudo-prompt';
+import { getDeferred, delay, ErrorLike } from '@httptoolkit/util';
 
 import { getMenu, shouldAutoHideMenu } from './menu';
 import { ContextMenuDefinition, openContextMenu } from './context-menu';
@@ -658,4 +659,34 @@ ipcMain.handle('restart-app', ipcHandler(() => {
 
     app.relaunch();
     app.quit();
+}));
+
+// Prompt the user to authorize a command to run as root, for system setup we can't do
+// without elevated permissions. We try to avoid this, but for system config changes
+// it's required, and much better to do per-command than running the whole app as root.
+ipcMain.handle('sudo', ipcHandler(async (options: {
+    command: string
+}) => {
+    if (typeof options?.command !== 'string') {
+        throw new Error("Invalid command for sudo");
+    }
+
+    const result = getDeferred<{ success: boolean, error?: ErrorLike, stdout: string, stderr: string }>();
+
+    sudoPrompt.exec(options.command, {
+        name: 'HTTP Toolkit'
+    }, (error: unknown | null, stdout: string, stderr: string) => {
+        // Types suggest this could be a buffer, but we want to
+        // enforce simpler string output:
+        stdout = stdout?.toString() ?? '';
+        stderr = stderr?.toString() ?? '';
+
+        if (error) {
+            result.resolve({ success: false, error, stdout, stderr });
+        } else {
+            result.resolve({ success: true, stdout, stderr });
+        }
+    });
+
+    return result.promise;
 }));
