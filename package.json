@@ -132,8 +132,7 @@
   "dependencies": {
     "@expo/sudo-prompt": "^9.3.2",
     "@httptoolkit/util": "^0.1.8",
-    "@sentry/electron": "^4.0.0",
-    "@sentry/integrations": "^7.8.1",
+    "@sentry/electron": "^7.2.0",
     "electron-context-menu": "^3.5.0",
     "electron-store": "^11.0.1",
     "electron-window-state": "^5.0.3",

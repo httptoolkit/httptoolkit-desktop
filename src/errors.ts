@@ -2,14 +2,13 @@ import { randomUUID } from 'crypto';
 
 const DEV_MODE = process.env.HTK_DEV === 'true';
 
-import * as Sentry from '@sentry/electron';
-import { RewriteFrames } from '@sentry/integrations';
+import * as Sentry from '@sentry/electron/main';
 
 if (!DEV_MODE) {
     Sentry.init({
         dsn: 'https://1194b128453942ed9470d49a74c35992@o202389.ingest.sentry.io/1367048',
         integrations: [
-            new RewriteFrames({
+            Sentry.rewriteFramesIntegration({
                 // Make all paths relative to this root, because otherwise it can make
                 // errors unnecessarily distinct, especially on Windows.
                 root: process.platform === 'win32'
@@ -22,13 +21,11 @@ if (!DEV_MODE) {
         ]
     });
 
-    Sentry.configureScope((scope) => {
-        // We use a random id to distinguish between many errors in one session vs
-        // one error in many sessions. This isn't persisted and can't be used to
-        // identify anybody between sessions.
-        const randomId = randomUUID();
-        scope.setUser({ id: randomId, username: `anon-${randomId}` });
-    });
+    // We use a random id to distinguish between many errors in one session vs
+    // one error in many sessions. This isn't persisted and can't be used to
+    // identify anybody between sessions.
+    const randomId = randomUUID();
+    Sentry.setUser({ id: randomId, username: `anon-${randomId}` });
 }
 
 export function logError(error: Error | string, fingerprint?: string[]) {
