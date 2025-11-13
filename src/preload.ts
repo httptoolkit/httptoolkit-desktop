@@ -46,8 +46,5 @@ contextBridge.exposeInMainWorld('desktopApi', {
         ipcRenderer.invoke('open-context-menu', options),
 
     restartApp: () =>
-        ipcRenderer.invoke('restart-app'),
-
-    sudo: (options: any) =>
-        ipcRenderer.invoke('sudo', options)
+        ipcRenderer.invoke('restart-app')
 });
