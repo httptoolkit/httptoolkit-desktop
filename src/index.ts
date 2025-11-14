@@ -600,6 +600,7 @@ const ipcHandler = <A, R>(fn: (...args: A[]) => R) => (
     event: Electron.IpcMainInvokeEvent,
     ...args: A[]
 ): R => {
+    console.log('IPC call from', event.senderFrame?.url);
     if (!event.senderFrame || !hasTrustedOrigin(new URL(event.senderFrame.url))) {
         throw new Error(`Invalid IPC sender URL: ${event.senderFrame?.url}`);
     } else {
