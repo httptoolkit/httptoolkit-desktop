@@ -80,7 +80,7 @@ const createWindow = (logStream: WriteStream) => {
         height: windowState.height,
 
         webPreferences: {
-            preload: path.join(import.meta.dirname, 'preload.js'),
+            preload: path.join(import.meta.dirname, 'preload.cjs'),
             contextIsolation: true,
             nodeIntegration: false
         },
