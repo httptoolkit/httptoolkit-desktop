@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as os from 'os';
-import { promises as fs, createWriteStream } from 'fs'
+import { promises as fs, createWriteStream, readFileSync } from 'fs'
 import { promisify } from 'util';
 
 import _ from 'lodash';
@@ -22,7 +22,9 @@ const requiredServerVersion = 'v' + packageJson.config['httptoolkit-server-versi
 // This real prod server will then be used with the real prod web UI, but this local desktop app.
 async function setUpLocalEnv() {
     const serverExists = await canAccess('./httptoolkit-server/package.json');
-    const serverVersion = serverExists ? require('./httptoolkit-server/package.json').version : null;
+    const serverVersion = serverExists
+        ? JSON.parse(readFileSync('./httptoolkit-server/package.json').toString()).version
+        : null;
 
     if (!serverVersion || semver.neq(serverVersion, requiredServerVersion)) {
         if (serverExists) await deleteDir('./httptoolkit-server');
