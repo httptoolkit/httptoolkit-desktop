@@ -10,6 +10,8 @@ test('app launches and loads UI from server', async () => {
 
     const window = await electronApp.firstWindow();
 
+    await expect(window.evaluate(() => typeof (window as any).desktopApi !== 'undefined')).resolves.toBe(true);
+
     await expect(window.locator('h1:has-text("Intercept HTTP")')).toBeVisible({ timeout: 60000 });
 
     await electronApp.close();
