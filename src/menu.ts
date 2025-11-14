@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { app, Menu, MenuItemConstructorOptions } from 'electron';
+import { app, Menu, MenuItemConstructorOptions, shell } from 'electron';
 import ElectronStore from 'electron-store';
 
 const store = new ElectronStore();
@@ -55,15 +55,15 @@ export const getMenu = (
             submenu: [
                 {
                     label: 'Open Documentation',
-                    click () { require('electron').shell.openExternal('https://httptoolkit.com/docs') }
+                    click () { shell.openExternal('https://httptoolkit.com/docs') }
                 },
                 {
                     label: 'Share Your Feedback',
-                    click () { require('electron').shell.openExternal('https://github.com/httptoolkit/httptoolkit/issues/new/choose') }
+                    click () { shell.openExternal('https://github.com/httptoolkit/httptoolkit/issues/new/choose') }
                 },
                 {
                     label: 'View HTTP Toolkit Logs',
-                    click () { require('electron').shell.showItemInFolder(path.join(app.getPath('logs'), 'last-run.log')) }
+                    click () { shell.showItemInFolder(path.join(app.getPath('logs'), 'last-run.log')) }
                 }
             ]
         }
