@@ -23,6 +23,13 @@ test('app launches and loads UI from server', async () => {
     await expect(window.locator('h1:has-text("Intercept HTTP")')).toBeVisible({ timeout: 60000 });
     console.log('saw title');
 
-    await electronApp.close();
+    if (process.env.CI) {
+        await Promise.race([
+            electronApp.close(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('App failed to close within 5 seconds')), 5000))
+        ]);
+    } else {
+        await electronApp.close();
+    }
     console.log('closed app');
 });
