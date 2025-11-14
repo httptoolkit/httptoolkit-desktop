@@ -80,7 +80,13 @@ jobs:
           USE_SYSTEM_FPM: ${{ matrix.platform == 'linux' && matrix.arch == 'arm64' }}
 
       - name: Run smoke tests
-        run: npm test
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            xvfb-run --auto-servernum npm test
+          else
+            npm test
+          fi
+        shell: bash
 
       - uses: actions/upload-artifact@v4
         with:
