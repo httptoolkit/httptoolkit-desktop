@@ -8,6 +8,13 @@ test('app launches and loads UI from server', async () => {
         timeout: 60000
     });
 
+    electronApp.process().stdout?.on('data', (data) => {
+        console.log('[stdout]', data.toString());
+    });
+    electronApp.process().stderr?.on('data', (data) => {
+        console.error('[stderr]', data.toString());
+    });
+
     const window = await electronApp.firstWindow();
 
     await expect(window.evaluate(() => typeof (window as any).desktopApi !== 'undefined')).resolves.toBe(true);
