@@ -4,3 +4,4 @@ build/
 dist/
 httptoolkit-server/
 appveyor-tools/
+.playwright/

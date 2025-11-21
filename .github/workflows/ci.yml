@@ -81,6 +81,19 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USE_SYSTEM_FPM: ${{ matrix.platform == 'linux' && matrix.arch == 'arm64' }}
 
+      - name: Run smoke tests
+        run: |
+          # We manually start ADB, so the tests don't (because if they do, they fail
+          # to exit, due to the hanging process)
+          "$ANDROID_HOME/platform-tools/adb" start-server 2>/dev/null || true
+
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            xvfb-run --auto-servernum npm test
+          else
+            npm test
+          fi
+        shell: bash
+
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.platform }}-${{ matrix.arch }}-distributables
