@@ -128,7 +128,17 @@
     "appImage": {
       "artifactName": "HttpToolkit-${version}-${arch}.${ext}"
     },
-    "publish": null
+    "publish": null,
+    "electronFuses": {
+      "runAsNode": false,
+      "enableCookieEncryption": true,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "onlyLoadAppFromAsar": true,
+      "loadBrowserProcessSpecificV8Snapshot": false,
+      "grantFileProtocolExtraPrivileges": false,
+      "resetAdHocDarwinSignature": false
+    }
   },
   "dependencies": {
     "@httptoolkit/util": "^0.1.8",
