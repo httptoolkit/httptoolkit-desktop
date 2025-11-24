@@ -108,16 +108,6 @@ jobs:
       - name: Get all distributables
         uses: actions/download-artifact@v4
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          prerelease: true
-
       - name: Normalize arch names to x64 or arm64
         run: |
           find . -maxdepth 2 -type f -name "*" | while read -r file; do
@@ -128,14 +118,15 @@ jobs:
             fi
           done
 
-      - name: Upload Release Assets
-        id: upload-release-assets
-        uses: dwenegar/upload-release-assets@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish to GitHub Releases
+        uses: svenstaro/upload-release-action@v2
         with:
-          release_id: ${{ steps.create_release.outputs.id }}
-          assets_path: ./*/
+          tag: ${{ github.ref }}
+          prerelease: true
+          file: ./*/
+          file_glob: true
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+
   submit-winget:
     name: Submit to WinGet repository
     needs: publish
