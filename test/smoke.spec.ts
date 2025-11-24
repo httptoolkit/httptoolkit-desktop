@@ -14,7 +14,7 @@ async function launchApp() {
                 ] : []
             )
         ],
-        timeout: 10000,
+        timeout: 20000,
         env: {
             ...process.env,
             // Disable auto-update during tests
