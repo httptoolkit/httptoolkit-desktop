@@ -127,7 +127,7 @@ jobs:
         with:
           tag: ${{ github.ref }}
           prerelease: true
-          file: ./*/
+          file: ./**/*
           file_glob: true
           repo_token: ${{ secrets.GITHUB_TOKEN }}
 
