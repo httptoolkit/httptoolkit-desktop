@@ -165,7 +165,6 @@
     "node-fetch": "^2.6.7",
     "targz": "^1.0.1",
     "tsc-watch": "^4.2.9",
-    "tslint": "^5.20.1",
     "tsx": "^4.16.2",
     "typescript": "~5.9"
   },
