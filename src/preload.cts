@@ -1,7 +1,8 @@
 import * as electron from 'electron';
 const {
     contextBridge,
-    ipcRenderer: { invoke: ipcInvoke }
+    ipcRenderer: { invoke: ipcInvoke },
+    webUtils
 } = electron;
 
 import type { ContextMenuDefinition } from './context-menu.ts';
@@ -47,5 +48,7 @@ contextBridge.exposeInMainWorld('desktopApi', {
         ipcInvoke('open-context-menu', options),
 
     restartApp: () =>
-        ipcInvoke('restart-app')
+        ipcInvoke('restart-app'),
+
+    getPathForFile: (file: File) => webUtils.getPathForFile(file) || null
 });
