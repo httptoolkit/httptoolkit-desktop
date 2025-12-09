@@ -1,4 +1,8 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import * as electron from 'electron';
+const {
+    contextBridge,
+    ipcRenderer: { invoke: ipcInvoke }
+} = electron;
 
 import type { ContextMenuDefinition } from './context-menu.ts';
 
@@ -12,16 +16,13 @@ let authToken: string | undefined;
 let deviceInfo: {} | undefined;
 
 const preloadPromise = Promise.all([
-    ipcRenderer.invoke('get-desktop-version').then(result => {
-        desktopVersion = result;
-    }),
-    ipcRenderer.invoke('get-server-auth-token').then(result => {
-        authToken = result;
-    }),
+    ipcInvoke('get-desktop-version')
+        .then(result => { desktopVersion = result; }),
+    ipcInvoke('get-server-auth-token')
+        .then(result => { authToken = result; }),
     Promise.race([
-        ipcRenderer.invoke('get-device-info').then(result => {
-            deviceInfo = result;
-        }),
+        ipcInvoke('get-device-info')
+            .then(result => { deviceInfo = result; }),
         // Give up after 500m - might complete later, but we don't
         // want to block 'API ready' for this info.
         new Promise((resolve) => setTimeout(resolve, 500))
@@ -36,15 +37,15 @@ contextBridge.exposeInMainWorld('desktopApi', {
     getDeviceInfo: () => deviceInfo,
 
     selectApplication: () =>
-        ipcRenderer.invoke('select-application'),
+        ipcInvoke('select-application'),
     selectFilePath: () =>
-        ipcRenderer.invoke('select-file-path'),
+        ipcInvoke('select-file-path'),
     selectSaveFilePath: () =>
-        ipcRenderer.invoke('select-save-file-path'),
+        ipcInvoke('select-save-file-path'),
 
     openContextMenu: (options: ContextMenuDefinition) =>
-        ipcRenderer.invoke('open-context-menu', options),
+        ipcInvoke('open-context-menu', options),
 
     restartApp: () =>
-        ipcRenderer.invoke('restart-app')
+        ipcInvoke('restart-app')
 });
