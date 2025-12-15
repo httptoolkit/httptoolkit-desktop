@@ -59,6 +59,9 @@ app.commandLine.appendSwitch('js-flags', [
     '--expose-gc', // Expose window.gc in the UI
     '--max-old-space-size=16384', // Increase max UI memory, to support very large sessions
 ].join(' '));
+// Enable SharedArrayBuffer in all cases, since cross-origin isolation
+// isn't relevant to us at all (we never load other origins).
+app.commandLine.appendSwitch('enable-features', 'SharedArrayBuffer');
 
 const createWindow = (logStream: WriteStream) => {
     // Load the previous window state, falling back to defaults
