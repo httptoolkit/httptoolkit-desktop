@@ -483,6 +483,25 @@ if (!amMainInstance) {
     const appReady = getDeferred();
     app.on('ready', () => appReady.resolve());
 
+    // Handle invalid COMSPEC on Windows, which frequently causes issues on weird configurations:
+    if (
+        process.platform === 'win32' &&
+        process.env.COMSPEC &&
+        !process.env.COMSPEC.toLowerCase().trim().endsWith('cmd.exe')
+    ) {
+        showErrorAlert(
+            "Unsupported COMSPEC configuration",
+            "HTTP Toolkit has detected that your default command interpreter is not cmd.exe.\n\n" +
+            "This will cause problems with HTTP Toolkit, and many other applications. " +
+            "To fix this, set the COMSPEC environment variable to point to cmd.exe - most "  +
+            "commonly that means 'C:\\Windows\\System32\\cmd.exe'.\n\n" +
+            "(Having trouble? File an issue at github.com/httptoolkit/httptoolkit)"
+        );
+
+        // Overwrite it for our purposes anyway, to try to minimize breakage:
+        process.env.COMSPEC = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'cmd.exe');
+    }
+
     const portCheck = checkServerPortAvailable('127.0.0.1', 45457)
         .catch(async () => {
             if (DEV_MODE) return; // In full dev mode this is OK & expected
