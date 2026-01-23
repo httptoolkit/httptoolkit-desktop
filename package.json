@@ -1,7 +1,7 @@
 {
   "name": "httptoolkit-desktop",
   "productName": "HTTP Toolkit",
-  "version": "1.24.3",
+  "version": "1.24.4",
   "homepage": "https://httptoolkit.com",
   "private": true,
   "description": "HTTP(S) debugging, development & testing tool",
