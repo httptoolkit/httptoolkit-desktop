@@ -62,10 +62,16 @@ export async function checkWindowsReservedPorts(ports: number[]): Promise<number
         //     ----------    --------
         //          50000       50099
         //          50100       50199  *
+        //
+        // Lines with an asterisk (*) are "administered port exclusions" - these are
+        // user-added reservations that persist across reboots. This is actually the fix,
+        // so we only want to warn about ranges WITHOUT the asterisk (Hyper-V dynamic
+        // reservations that are causing the problem).
         const excludedPorts: number[] = [];
 
         for (const line of stdout.split('\n')) {
-            const match = line.match(/^\s*(\d+)\s+(\d+)/);
+            // Match lines with start/end ports, but NOT lines ending with * (user reservations)
+            const match = line.match(/^\s*(\d+)\s+(\d+)\s*$/);
             if (match) {
                 const startPort = parseInt(match[1], 10);
                 const endPort = parseInt(match[2], 10);
