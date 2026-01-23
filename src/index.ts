@@ -6,7 +6,6 @@ import { logError, addBreadcrumb } from './errors.ts';
 import { spawn, ChildProcess } from 'child_process';
 import * as os from 'os';
 import { promises as fs, createWriteStream, WriteStream } from 'fs'
-import * as net from 'net';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import * as querystring from 'querystring';
@@ -19,12 +18,13 @@ const rmRF = (p: string) => fs.rm(p, { recursive: true, force: true });
 import windowStateKeeper from 'electron-window-state';
 import { getSystemProxy } from 'os-proxy-config';
 import registerContextMenu from 'electron-context-menu';
-import { getDeferred, delay } from '@httptoolkit/util';
+import { getDeferred } from '@httptoolkit/util';
 
 import { getMenu, shouldAutoHideMenu } from './menu.ts';
 import { ContextMenuDefinition, openContextMenu } from './context-menu.ts';
 import { stopServer } from './stop-server.ts';
 import { getDeviceDetails } from './device.ts';
+import { SERVER_PORTS, checkPortsInUse, checkWindowsReservedPorts } from './port-checks.ts';
 
 import packageJson from '../package.json' with { type: 'json' };
 
@@ -271,10 +271,26 @@ if (!amMainInstance) {
             });
     }
 
-    function showErrorAlert(title: string, body: string) {
+    async function showErrorAlert(title: string, body: string, docsUrl?: string) {
         logStream.write(`ALERT: ${title}: ${body}\n`);
         console.warn(`${title}: ${body}`);
-        dialog.showErrorBox(title, body);
+
+        if (docsUrl) {
+            const result = await dialog.showMessageBox({
+                type: 'error',
+                buttons: ['OK', 'Open Docs'],
+                defaultId: 0,
+                title,
+                message: title,
+                detail: body
+            });
+
+            if (result.response === 1) {
+                await shell.openExternal(docsUrl);
+            }
+        } else {
+            dialog.showErrorBox(title, body);
+        }
     }
 
     // On startup, we want to kill server directories if the bundled server version is newer. This ensures that
@@ -343,29 +359,6 @@ if (!amMainInstance) {
         }
 
         logStream.write('Server cleanup check completed\n');
-    }
-
-    // When run *before* the server starts, this allows us to check whether the port is already in use,
-    // so we can provide clear setup instructions and avoid confusing errors later.
-    function checkServerPortAvailable(host: string, port: number): Promise<void> {
-        const conn = net.connect({ host, port });
-
-        return Promise.race([
-            new Promise<void>((resolve, reject) => {
-                // If we can already connect to the local port, then it's not available for our server:
-                conn.on('connect', () =>
-                    reject(new Error(`Port ${port} is already in use`))
-                );
-                // If we fail to connect to the port, it's probably available:
-                conn.on('error', resolve);
-            }),
-            // After 100 ms with no connection, assume the port is available:
-            delay(100)
-        ])
-        .finally(() => {
-            logStream.write('Port check completed\n');
-            conn.destroy();
-        });
     }
 
     async function startServer(retries = 2) {
@@ -502,17 +495,43 @@ if (!amMainInstance) {
         process.env.COMSPEC = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'cmd.exe');
     }
 
-    const portCheck = checkServerPortAvailable('127.0.0.1', 45457)
-        .catch(async () => {
+    // Check if our required ports are already in use by another process
+    const portsInUseCheck = checkPortsInUse('127.0.0.1', [...SERVER_PORTS])
+        .then(async (portsInUse) => {
+            if (portsInUse.length === 0) return;
             if (DEV_MODE) return; // In full dev mode this is OK & expected
+
             await appReady.promise;
 
+            const portList = portsInUse.join(', ');
             showErrorAlert(
                 "HTTP Toolkit could not start",
-                "HTTP Toolkit's local management port (45457) is already in use.\n\n" +
+                `HTTP Toolkit's required port${portsInUse.length > 1 ? 's' : ''} (${portList}) ` +
+                `${portsInUse.length > 1 ? 'are' : 'is'} already in use.\n\n` +
                 "Do you have another HTTP Toolkit process running somewhere?\n" +
                 "Please close the other process using this port, and try again.\n\n" +
                 "(Having trouble? File an issue at github.com/httptoolkit/httptoolkit)"
+            );
+
+            process.exit(2);
+        });
+
+    // On Windows, check if Hyper-V/WSL has reserved our ports (separate from 'in use' above)
+    const reservedPortCheck = checkWindowsReservedPorts([...SERVER_PORTS])
+        .then(async (reservedPorts) => {
+            if (reservedPorts.length === 0) return;
+            if (DEV_MODE) return;
+
+            await appReady.promise;
+
+            const portList = reservedPorts.join(', ');
+            await showErrorAlert(
+                "HTTP Toolkit could not start",
+                `HTTP Toolkit's required port${reservedPorts.length > 1 ? 's' : ''} (${portList}) ` +
+                `${reservedPorts.length > 1 ? 'have' : 'has'} been reserved by Windows.\n\n` +
+                "This is usually caused by Hyper-V or WSL reserving ports for its own use. " +
+                "This can be fixed by adjusting your Windows network configuration.",
+                "https://httptoolkit.com/docs/guides/troubleshooting/#http-toolkit-conflicts-with-hyper-v"
             );
 
             process.exit(2);
@@ -573,7 +592,8 @@ if (!amMainInstance) {
 
     Promise.all([
         cleanupOldServers().catch(console.log),
-        portCheck
+        portsInUseCheck,
+        reservedPortCheck
     ]).then(() =>
         startServer()
     ).catch((err) => {
@@ -584,7 +604,7 @@ if (!amMainInstance) {
         setTimeout(() => process.exit(3), 500);
     });
 
-    Promise.all([appReady.promise, portCheck]).then(() => {
+    Promise.all([appReady.promise, portsInUseCheck, reservedPortCheck]).then(() => {
         Menu.setApplicationMenu(
             getMenu(windows, openNewWindow)
         );
