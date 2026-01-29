@@ -161,7 +161,7 @@
     "@types/yargs": "^15.0.3",
     "cross-env": "^7.0.3",
     "electron": "^39.2.7",
-    "electron-builder": "^26.0.2",
+    "electron-builder": "^26.6.0",
     "lodash": "^4.17.23",
     "node-fetch": "^2.6.7",
     "targz": "^1.0.1",
