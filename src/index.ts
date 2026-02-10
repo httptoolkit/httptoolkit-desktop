@@ -136,6 +136,10 @@ if (!amMainInstance) {
     app.quit();
 } else {
     const logStream = createWriteStream(LAST_RUN_LOG_PATH);
+    logStream.on('error', (e) => {
+        console.log('Log stream error:', e);
+    });
+
     logStream.write(`--- Launching HTTP Toolkit desktop v${DESKTOP_VERSION} at ${new Date().toISOString()} ---\n`);
 
     yargs
