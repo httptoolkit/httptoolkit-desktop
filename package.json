@@ -155,7 +155,6 @@
   "devDependencies": {
     "@playwright/test": "^1.56.1",
     "@types/lodash": "^4.14.149",
-    "@types/node-fetch": "^2.1.4",
     "@types/semver": "^7.3.4",
     "@types/targz": "^1.0.0",
     "@types/yargs": "^15.0.3",
@@ -163,7 +162,6 @@
     "electron": "^39.2.7",
     "electron-builder": "^26.6.0",
     "lodash": "^4.17.23",
-    "node-fetch": "^2.6.7",
     "targz": "^1.0.1",
     "tsc-watch": "^4.2.9",
     "tsx": "^4.16.2",

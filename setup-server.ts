@@ -1,11 +1,11 @@
 import * as path from 'path';
 import * as os from 'os';
+import { Readable } from 'stream';
 import { promises as fs, createWriteStream, readFileSync } from 'fs'
 import { promisify } from 'util';
 
 import _ from 'lodash';
 import * as semver from 'semver';
-import fetch from 'node-fetch';
 import targz from 'targz';
 import { execSync } from 'child_process';
 
@@ -91,7 +91,13 @@ async function insertServer(
     const downloadPath = path.join(buildPath, 'httptoolkit-server.tar.gz');
 
     const assetDownload = await fetch(asset.browser_download_url);
-    const assetWrite = assetDownload.body.pipe(createWriteStream(downloadPath));
+    if (!assetDownload.ok) {
+        console.log(`${assetDownload.status} response, body: `, await assetDownload.text());
+        throw new Error(`Server download rejected with ${assetDownload.status}`);
+    }
+
+    const assetWrite = Readable.fromWeb(assetDownload.body as any)
+        .pipe(createWriteStream(downloadPath));
 
     await new Promise<void>((resolve, reject) => {
         assetWrite.on('finish', resolve);
