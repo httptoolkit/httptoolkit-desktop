@@ -416,16 +416,19 @@ if (!amMainInstance) {
             addBreadcrumb({ category: 'server-stdout', message: data.toString('utf8'), level: <any>'info' });
         });
 
-        let lastError: string | undefined = undefined;
+        let lastError: { message: string, time: number } | undefined = undefined;
         serverStderr.on('data', (data) => {
             const errorOutput = data.toString('utf8');
             addBreadcrumb({ category: 'server-stderr', message: errorOutput, level: <any>'warning' });
 
             // Remember the last '*Error:' line we saw.
-            lastError = errorOutput
-                .split('\n')
-                .filter((line: string) => line.match(/^\s*Error:/i))
-                .slice(-1)[0]?.trim() || lastError;
+            lastError = {
+                message: errorOutput
+                    .split('\n')
+                    .filter((line: string) => line.match(/^\s*Error:/i))
+                    .slice(-1)[0]?.trim() || lastError,
+                time: Date.now()
+            };
         });
 
         const serverStartTime = Date.now();
@@ -443,8 +446,8 @@ if (!amMainInstance) {
 
             if (errorOrCode && typeof errorOrCode !== 'number') {
                 error = errorOrCode;
-            } else if (lastError) {
-                error = new Error(`Server crashed with '${lastError}' (${errorOrCode})`);
+            } else if (lastError?.time && (Date.now() - lastError.time) < 2000) {
+                error = new Error(`Server crashed with '${lastError.message}' (${errorOrCode})`);
             } else {
                 error = new Error(`Server shutdown unexpectedly with code ${errorOrCode}`);
             }
