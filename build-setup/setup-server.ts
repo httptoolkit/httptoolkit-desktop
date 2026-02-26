@@ -9,7 +9,7 @@ import * as semver from 'semver';
 import targz from 'targz';
 import { execSync } from 'child_process';
 
-import packageJson from './package.json' with { type: 'json' };
+import packageJson from '../package.json' with { type: 'json' };
 
 const extractTarGz = promisify(targz.decompress);
 
@@ -18,17 +18,19 @@ const deleteDir = (p: string) => fs.rm(p, { recursive: true, force: true });
 
 const requiredServerVersion = 'v' + packageJson.config['httptoolkit-server-version'];
 
+const serverDir = path.join(import.meta.dirname, '..', 'httptoolkit-server');
+
 // For local testing of the desktop app, we need to pull the latest server and unpack it.
 // This real prod server will then be used with the real prod web UI, but this local desktop app.
 async function setUpLocalEnv() {
-    const serverExists = await canAccess('./httptoolkit-server/package.json');
+    const serverExists = await canAccess(path.join(serverDir, 'package.json'))
     const serverVersion = serverExists
-        ? JSON.parse(readFileSync('./httptoolkit-server/package.json').toString()).version
+        ? JSON.parse(readFileSync(path.join(serverDir, 'package.json')).toString()).version
         : null;
 
     if (!serverVersion || semver.neq(serverVersion, requiredServerVersion)) {
-        if (serverExists) await deleteDir('./httptoolkit-server');
-        await insertServer(import.meta.dirname, os.platform(), os.arch());
+        if (serverExists) await deleteDir(serverDir);
+        await insertServer(path.join(import.meta.dirname, '..'), os.platform(), os.arch());
         console.log('Server setup completed.');
     } else {
         console.log('Correct server already downloaded.');
@@ -39,7 +41,7 @@ async function setUpLocalEnv() {
         // caused by https://github.com/nodejs/node-gyp/commit/b9ddcd5bbd93b05b03674836b6ebdae2c2e74c8c,
         // we manually remove node_gyp_bins subdirectories. Done by shell just
         // because it's a quick easy fix:
-        execSync('find httptoolkit-server/node_modules -type d -name node_gyp_bins -prune -exec rm -r {} \\;');
+        execSync(`find "${serverDir}/node_modules" -type d -name node_gyp_bins -prune -exec rm -r {} \\;`);
     }
 }
 

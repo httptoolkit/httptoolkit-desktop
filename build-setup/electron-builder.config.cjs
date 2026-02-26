@@ -1,7 +1,7 @@
 // This config just re-exposes the config from package.json, but
 // disables code signing & notarization for PR builds where it won't work.
 
-const packageJson = require('./package.json');
+const packageJson = require('../package.json');
 
 const unsignedMode = process.env.ENABLE_SIGNING !== 'true';
 
