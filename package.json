@@ -30,6 +30,9 @@
     "appId": "tech.httptoolkit.desktop",
     "extends": null,
     "productName": "HTTP Toolkit",
+    "directories": {
+      "buildResources": "build-resources"
+    },
     "extraMetadata": {
       "name": "httptoolkit",
       "productName": "httptoolkit",
