@@ -149,7 +149,7 @@ if (!amMainInstance) {
 
     let serverKilled = false;
     app.on('will-quit', async (event) => {
-        if (server && !serverKilled) {
+        if (server && !serverKilled && !DEV_MODE) {
             // Don't shutdown until we've tried to kill the server
             event.preventDefault();
 
