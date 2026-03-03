@@ -1,11 +1,12 @@
 import { test, expect, _electron as electron } from '@playwright/test';
 import * as path from 'path';
 
-async function launchApp() {
+async function launchApp(extraArgs: string[] = [], extraEnv: Record<string, string> = {}) {
     const app = await electron.launch({
         cwd: path.join(import.meta.dirname, '..'),
         args: [
             '.',
+            ...extraArgs,
             // On Linux ARM64 CI, sandboxing doesn't work, so we have to skip it:
             ...(process.env.CI && process.platform === 'linux' && process.arch === 'arm64' ?
                 [
@@ -17,8 +18,8 @@ async function launchApp() {
         timeout: 20000,
         env: {
             ...process.env,
-            // Disable auto-update during tests
-            'HTTPTOOLKIT_SERVER_DISABLE_AUTOUPDATE': '1'
+            'HTTPTOOLKIT_SERVER_DISABLE_AUTOUPDATE': '1',
+            ...extraEnv
         }
     });
 

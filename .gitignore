@@ -6,3 +6,4 @@ httptoolkit-server/
 appveyor-tools/
 .playwright/
 httptoolkit-server.tar.gz
+httptoolkit-cli

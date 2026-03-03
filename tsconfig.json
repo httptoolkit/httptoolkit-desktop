@@ -30,6 +30,8 @@
     "include": [
         "./src/index.ts",
         "./src/preload.cts",
+        "./src/ui-bridge.ts",
+        "./src/cli/cli.ts",
         "./custom-typings/**/*.d.ts"
     ]
 }
