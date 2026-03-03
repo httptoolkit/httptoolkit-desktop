@@ -4,6 +4,8 @@ import * as http from 'http';
 import { EventEmitter } from 'events';
 import type { MessagePortMain } from 'electron';
 
+import { logError } from './errors.ts';
+
 export interface HtkOperation {
     name: string;
     description: string;
@@ -112,12 +114,22 @@ export class UiBridge extends EventEmitter {
 
             this.pending.set(id, { resolve, reject, timer });
 
-            this.port!.postMessage({
-                type: 'request',
-                id,
-                operation,
-                params
-            });
+            try {
+                this.port!.postMessage({
+                    type: 'request',
+                    id,
+                    operation,
+                    params
+                });
+            } catch (err: any) {
+                clearTimeout(timer);
+                this.pending.delete(id);
+                const error = new Error(
+                    `Failed to send '${operation}' request to renderer: ${err.message}`
+                );
+                logError(error);
+                reject(error);
+            }
         });
     }
 
@@ -142,6 +154,7 @@ export class UiBridge extends EventEmitter {
                     res.end(JSON.stringify({ error: 'not_found' }));
                 }
             } catch (err: any) {
+                logError(err);
                 res.writeHead(500);
                 res.end(JSON.stringify({ error: 'internal_error', message: err.message }));
             }
@@ -209,6 +222,7 @@ export class UiBridge extends EventEmitter {
             res.writeHead(200);
             res.end(JSON.stringify(result));
         } catch (err: any) {
+            logError(new Error(`Operation '${parsed.name}' failed: ${err.message}`));
             res.writeHead(502);
             res.end(JSON.stringify({ error: 'execution_failed', message: err.message }));
         }
