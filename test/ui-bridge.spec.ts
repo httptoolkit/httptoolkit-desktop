@@ -1,12 +1,9 @@
-import { test, expect } from '@playwright/test';
+import { describe, it, after } from 'node:test';
+import assert from 'node:assert/strict';
 import { once } from 'events';
 import { MessageChannel } from 'worker_threads';
 
 import { UiBridge } from '../build/ui-bridge.js';
-
-const DUMMY_OPTIONS = {
-    getSkillsMarkdown: () => ''
-};
 
 const DUMMY_OPS = [
     { name: 'test.echo', description: 'Echo', category: 'test', inputSchema: {} }
@@ -47,32 +44,32 @@ async function sendOpsAndWaitForReady(
     await once(bridge, 'ready');
 }
 
-test.describe('UiBridge', () => {
+describe('UiBridge', () => {
 
-    test('starts in not-ready state', () => {
-        const bridge = new UiBridge(DUMMY_OPTIONS);
-        expect(bridge.isReady).toBe(false);
-        expect(bridge.currentOperations).toEqual([]);
+    it('starts in not-ready state', () => {
+        const bridge = new UiBridge();
+        assert.equal(bridge.isReady, false);
+        assert.deepEqual(bridge.currentOperations, []);
         bridge.destroy();
     });
 
-    test('transitions to ready on first operations message', async () => {
+    it('transitions to ready on first operations message', async () => {
         const { bridgePort, rendererPort } = createTestChannel();
-        const bridge = new UiBridge(DUMMY_OPTIONS);
+        const bridge = new UiBridge();
         bridge.setPort(bridgePort as any);
 
         rendererPort.postMessage({ type: 'operations', operations: DUMMY_OPS });
         await once(bridge, 'ready');
 
-        expect(bridge.isReady).toBe(true);
-        expect(bridge.currentOperations).toEqual(DUMMY_OPS);
+        assert.equal(bridge.isReady, true);
+        assert.deepEqual(bridge.currentOperations, DUMMY_OPS);
         bridge.destroy();
         rendererPort.close();
     });
 
-    test('updates operations without re-emitting ready', async () => {
+    it('updates operations without re-emitting ready', async () => {
         const { bridgePort, rendererPort } = createTestChannel();
-        const bridge = new UiBridge(DUMMY_OPTIONS);
+        const bridge = new UiBridge();
         bridge.setPort(bridgePort as any);
 
         await sendOpsAndWaitForReady(rendererPort, bridge);
@@ -84,15 +81,15 @@ test.describe('UiBridge', () => {
         rendererPort.postMessage({ type: 'operations', operations: newOps });
         await once(bridge, 'operations-changed');
 
-        expect(bridge.currentOperations).toEqual(newOps);
-        expect(readyCount).toBe(0);
+        assert.deepEqual(bridge.currentOperations, newOps);
+        assert.equal(readyCount, 0);
         bridge.destroy();
         rendererPort.close();
     });
 
-    test('executeOperation sends request and resolves on response', async () => {
+    it('executeOperation sends request and resolves on response', async () => {
         const { bridgePort, rendererPort } = createTestChannel();
-        const bridge = new UiBridge(DUMMY_OPTIONS);
+        const bridge = new UiBridge();
         bridge.setPort(bridgePort as any);
 
         await sendOpsAndWaitForReady(rendererPort, bridge);
@@ -101,10 +98,10 @@ test.describe('UiBridge', () => {
 
         // Wait for the request to arrive at the renderer
         const [request] = await once(rendererPort, 'message');
-        expect(request.type).toBe('request');
-        expect(request.operation).toBe('test.echo');
-        expect(request.params).toEqual({ msg: 'hello' });
-        expect(request.id).toBeTruthy();
+        assert.equal(request.type, 'request');
+        assert.equal(request.operation, 'test.echo');
+        assert.deepEqual(request.params, { msg: 'hello' });
+        assert.ok(request.id);
 
         rendererPort.postMessage({
             type: 'response',
@@ -113,14 +110,14 @@ test.describe('UiBridge', () => {
         });
 
         const result = await resultPromise;
-        expect(result).toEqual({ success: true, data: 'echoed' });
+        assert.deepEqual(result, { success: true, data: 'echoed' });
         bridge.destroy();
         rendererPort.close();
     });
 
-    test('executeOperation rejects on error response', async () => {
+    it('executeOperation rejects on error response', async () => {
         const { bridgePort, rendererPort } = createTestChannel();
-        const bridge = new UiBridge(DUMMY_OPTIONS);
+        const bridge = new UiBridge();
         bridge.setPort(bridgePort as any);
 
         await sendOpsAndWaitForReady(rendererPort, bridge);
@@ -134,23 +131,25 @@ test.describe('UiBridge', () => {
             error: 'Something went wrong'
         });
 
-        await expect(resultPromise).rejects.toThrow('Something went wrong');
+        await assert.rejects(resultPromise, { message: 'Something went wrong' });
         bridge.destroy();
         rendererPort.close();
     });
 
-    test('executeOperation rejects when not ready and no operations', async () => {
-        const bridge = new UiBridge(DUMMY_OPTIONS);
+    it('executeOperation rejects when not ready and no operations', async () => {
+        const bridge = new UiBridge();
 
-        await expect(bridge.executeOperation('test.echo', {}))
-            .rejects.toThrow('Renderer API is not ready');
+        await assert.rejects(
+            bridge.executeOperation('test.echo', {}),
+            { message: 'Renderer API is not ready' }
+        );
         bridge.destroy();
     });
 
-    test('setPort rejects pending requests from old port', async () => {
+    it('setPort rejects pending requests from old port', async () => {
         const ch1 = createTestChannel();
         const ch2 = createTestChannel();
-        const bridge = new UiBridge(DUMMY_OPTIONS);
+        const bridge = new UiBridge();
         bridge.setPort(ch1.bridgePort as any);
 
         await sendOpsAndWaitForReady(ch1.rendererPort, bridge);
@@ -159,16 +158,16 @@ test.describe('UiBridge', () => {
 
         bridge.setPort(ch2.bridgePort as any);
 
-        await expect(resultPromise).rejects.toThrow('Renderer disconnected');
-        expect(bridge.isReady).toBe(false);
+        await assert.rejects(resultPromise, { message: 'Renderer disconnected' });
+        assert.equal(bridge.isReady, false);
         bridge.destroy();
         ch1.rendererPort.close();
         ch2.rendererPort.close();
     });
 
-    test('ignores responses for unknown request IDs', async () => {
+    it('ignores responses for unknown request IDs', async () => {
         const { bridgePort, rendererPort } = createTestChannel();
-        const bridge = new UiBridge(DUMMY_OPTIONS);
+        const bridge = new UiBridge();
         bridge.setPort(bridgePort as any);
 
         // Send an unknown response, then a valid operations message.
@@ -181,9 +180,9 @@ test.describe('UiBridge', () => {
         rendererPort.close();
     });
 
-    test('ignores unrecognized messages', async () => {
+    it('ignores unrecognized messages', async () => {
         const { bridgePort, rendererPort } = createTestChannel();
-        const bridge = new UiBridge(DUMMY_OPTIONS);
+        const bridge = new UiBridge();
         bridge.setPort(bridgePort as any);
 
         // Send unrecognized messages, then a valid one to confirm delivery.
@@ -193,7 +192,7 @@ test.describe('UiBridge', () => {
         await once(bridge, 'ready');
 
         // Bridge should be ready (from the valid message) with no ill effects from the others
-        expect(bridge.isReady).toBe(true);
+        assert.equal(bridge.isReady, true);
         bridge.destroy();
         rendererPort.close();
     });
