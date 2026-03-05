@@ -714,16 +714,21 @@ if (!amMainInstance) {
 }
 
 // Restrict calls to IPC handler to our trusted host. This shouldn't be required (we don't allow loading
-// 3rd party sites) but it's good practice for defense-in-depth etc.
+// 3rd party sites) but it's good practice for defense-in-depth etc. We allow calls with an empty URL
+// because the preload script fires IPC invocations before navigation completes, so the frame URL is
+// not yet set at that point.
 const ipcHandler = <A, R>(fn: (...args: A[]) => R) => (
     event: Electron.IpcMainInvokeEvent,
     ...args: A[]
 ): R => {
-    if (!event.senderFrame || !hasTrustedOrigin(new URL(event.senderFrame.url))) {
-        throw new Error(`Invalid IPC sender URL: ${event.senderFrame?.url}`);
-    } else {
-        return fn(...args);
+    if (!event.senderFrame) {
+        throw new Error('IPC call from destroyed frame');
     }
+    const frameUrl = event.senderFrame.url;
+    if (frameUrl && frameUrl !== 'about:blank' && !hasTrustedOrigin(new URL(frameUrl))) {
+        throw new Error(`Invalid IPC sender URL: ${frameUrl}`);
+    }
+    return fn(...args);
 };
 
 ipcMain.handle('select-application', ipcHandler(async () => {
