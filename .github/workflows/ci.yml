@@ -97,9 +97,52 @@ jobs:
         shell: bash
 
       - uses: actions/upload-artifact@v6
+        if: matrix.platform == 'linux'
         with:
-          name: ${{ matrix.platform }}-${{ matrix.arch }}-distributables
-          path: dist/HttpToolkit-*
+          name: HttpToolkit-linux-${{ matrix.arch }}-deb
+          path: dist/HttpToolkit-*.deb
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v6
+        if: matrix.platform == 'linux'
+        with:
+          name: HttpToolkit-linux-${{ matrix.arch }}-rpm
+          path: dist/HttpToolkit-*.rpm
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v6
+        if: matrix.platform == 'linux'
+        with:
+          name: HttpToolkit-linux-${{ matrix.arch }}-AppImage
+          path: dist/HttpToolkit-*.AppImage
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v6
+        if: matrix.platform == 'linux'
+        with:
+          name: HttpToolkit-linux-${{ matrix.arch }}-zip
+          path: dist/HttpToolkit-*linux*.zip
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v6
+        if: matrix.platform == 'windows'
+        with:
+          name: HttpToolkit-windows-${{ matrix.arch }}-exe
+          path: dist/HttpToolkit-*.exe
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v6
+        if: matrix.platform == 'windows'
+        with:
+          name: HttpToolkit-windows-${{ matrix.arch }}-zip
+          path: dist/HttpToolkit-*win*.zip
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v6
+        if: matrix.platform == 'mac'
+        with:
+          name: HttpToolkit-mac-${{ matrix.arch }}-dmg
+          path: dist/HttpToolkit-*.dmg
           if-no-files-found: error
   publish:
     name: Publish a release
