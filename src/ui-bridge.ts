@@ -12,6 +12,12 @@ export interface HtkOperation {
     category: string;
     inputSchema: object;
     outputSchema: object;
+    annotations?: {
+        readOnlyHint?: boolean;
+        destructiveHint?: boolean;
+        idempotentHint?: boolean;
+        openWorldHint?: boolean;
+    };
 }
 
 interface PendingRequest {
