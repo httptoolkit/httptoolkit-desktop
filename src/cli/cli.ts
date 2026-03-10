@@ -18,6 +18,12 @@ interface HtkOperation {
     description: string;
     category: string;
     inputSchema: any;
+    annotations?: {
+        readOnlyHint?: boolean;
+        destructiveHint?: boolean;
+        idempotentHint?: boolean;
+        openWorldHint?: boolean;
+    };
 }
 
 // NOTE: This logic is duplicated in src/index.ts — keep in sync.
@@ -401,7 +407,8 @@ function operationsToMcpTools(operations: HtkOperation[]): any[] {
         inputSchema: {
             type: 'object',
             properties: op.inputSchema?.properties ?? {},
-        }
+        },
+        ...(op.annotations && { annotations: op.annotations })
     }));
 }
 
