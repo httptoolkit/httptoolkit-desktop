@@ -134,7 +134,7 @@ test('MCP server exposes UI operations as tools', async () => {
         // --- MCP protocol test via CLI ---
 
         mcpProcess = spawn('node', [
-            path.join(import.meta.dirname, '..', 'build', 'cli', 'cli.js'),
+            path.join(import.meta.dirname, '..', 'build', 'cli', 'cli.cjs'),
             'mcp'
         ], {
             stdio: ['pipe', 'pipe', 'pipe']
