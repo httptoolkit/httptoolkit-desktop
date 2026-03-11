@@ -29,9 +29,9 @@ jobs:
             os: "macos-14"
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 22.20.0
           check-latest: true
@@ -96,7 +96,7 @@ jobs:
           fi
         shell: bash
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.platform }}-${{ matrix.arch }}-distributables
           path: dist/HttpToolkit-*
@@ -110,7 +110,7 @@ jobs:
       contents: write
     steps:
       - name: Get all distributables
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
 
       - name: Normalize arch names to x64 or arm64
         run: |
