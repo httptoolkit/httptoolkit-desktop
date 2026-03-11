@@ -31,7 +31,7 @@
         "./src/index.ts",
         "./src/preload.cts",
         "./src/ui-bridge.ts",
-        "./src/cli/cli.ts",
+        "./src/cli/cli.cts",
         "./custom-typings/**/*.d.ts"
     ]
 }
