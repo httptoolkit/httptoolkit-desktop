@@ -15,9 +15,24 @@ type MenuKey =
     | 'window'
     | 'help';
 
+const getVersionMenuItems = (
+    versions?: Record<string, string>
+): MenuItemConstructorOptions[] => {
+    if (!versions || Object.keys(versions).length === 0) return [];
+
+    return [
+        { type: 'separator' },
+        ...Object.entries(versions).map(([name, version]) => ({
+            label: `${name}: ${version}`,
+            enabled: false
+        }))
+    ];
+};
+
 export const getMenu = (
     browserWindows: Electron.BrowserWindow[],
-    openNewWindow: () => void
+    openNewWindow: () => void,
+    componentVersions?: Record<string, string>
 ) => {
     const menuTemplate: { [key in MenuKey]?: MenuItemConstructorOptions } = {
         edit: {
@@ -64,7 +79,8 @@ export const getMenu = (
                 {
                     label: 'View HTTP Toolkit Logs',
                     click () { shell.showItemInFolder(path.join(app.getPath('logs'), 'last-run.log')) }
-                }
+                },
+                ...getVersionMenuItems(componentVersions)
             ]
         }
     };

@@ -87,7 +87,7 @@ app.commandLine.appendSwitch('js-flags', [
 // isn't relevant to us at all (we never load other origins).
 app.commandLine.appendSwitch('enable-features', 'SharedArrayBuffer');
 
-const createWindow = (logStream: WriteStream) => {
+const createWindow = () => {
     // Load the previous window state, falling back to defaults
     let windowState = windowStateKeeper({
         defaultWidth: 1366,
@@ -125,7 +125,7 @@ const createWindow = (logStream: WriteStream) => {
 
     // Stream renderer console output directly into our log file:
     window.webContents.on('console-message', ({ level, message }) => {
-        logStream.write(`${level}: ${message}\n`);
+        writeLog(`${level}: ${message}`);
     });
 
     // Limit permissions to our trusted origin only. This shouldn't be required (we don't allow loading
@@ -154,17 +154,34 @@ const createWindow = (logStream: WriteStream) => {
     });
 };
 
+// Use a promise to organize events around 'ready', and ensure they never
+// fire before, as Electron will refuse to do various things if they do.
+const appReady = getDeferred();
+app.on('ready', () => appReady.resolve());
+
+let logStream: WriteStream | undefined;
+const getLogStream = () => {
+    if (!logStream) {
+        logStream = createWriteStream(LAST_RUN_LOG_PATH);
+        logStream.on('error', (e) => {
+            console.log('Log stream error:', e);
+        });
+    }
+    return logStream;
+};
+
+const writeLog = (message: string) => {
+    getLogStream().write(message + '\n');
+}
+
+const openNewWindow = () => appReady.promise.then(() => createWindow());
+
 const amMainInstance = app.requestSingleInstanceLock();
 if (!amMainInstance) {
     console.log('Not the main instance - quitting');
     app.quit();
 } else {
-    const logStream = createWriteStream(LAST_RUN_LOG_PATH);
-    logStream.on('error', (e) => {
-        console.log('Log stream error:', e);
-    });
-
-    logStream.write(`--- Launching HTTP Toolkit desktop v${DESKTOP_VERSION} at ${new Date().toISOString()} ---\n`);
+    writeLog(`--- Launching HTTP Toolkit desktop v${DESKTOP_VERSION} at ${new Date().toISOString()} ---`);
 
     yargs
         .version(DESKTOP_VERSION)
@@ -208,7 +225,7 @@ if (!amMainInstance) {
     });
 
     app.on('quit', () => {
-        logStream.close(); // Explicitly close the logstream, to flush everything to disk.
+        logStream?.close(); // Explicitly close the logstream, to flush everything to disk.
     });
 
     app.on('web-contents-created', (_event, contents) => {
@@ -316,7 +333,7 @@ if (!amMainInstance) {
     }
 
     async function showErrorAlert(title: string, body: string, docsUrl?: string) {
-        logStream.write(`ALERT: ${title}: ${body}\n`);
+        writeLog(`ALERT: ${title}: ${body}`);
         console.warn(`${title}: ${body}`);
 
         if (docsUrl) {
@@ -402,11 +419,11 @@ if (!amMainInstance) {
             await rmRF(serverUpdatesPath);
         }
 
-        logStream.write('Server cleanup check completed\n');
+        writeLog('Server cleanup check completed');
     }
 
     async function startServer(retries = 2) {
-        logStream.write('Starting server\n');
+        writeLog('Starting server');
         const binName = isWindows ? 'httptoolkit-server.cmd' : 'httptoolkit-server';
         const serverBinPath = path.join(RESOURCES_PATH, 'httptoolkit-server', 'bin', binName);
         const serverBinCommand = isWindows ? `"${serverBinPath}"` : serverBinPath;
@@ -441,8 +458,8 @@ if (!amMainInstance) {
 
         serverStdout.pipe(process.stdout);
         serverStderr.pipe(process.stderr);
-        serverStdout.pipe(logStream);
-        serverStderr.pipe(logStream);
+        serverStdout.pipe(getLogStream());
+        serverStderr.pipe(getLogStream());
 
         const startTime = Date.now();
         let seenOutput = false;
@@ -517,11 +534,6 @@ if (!amMainInstance) {
 
         return serverShutdown;
     }
-
-    // Use a promise to organize events around 'ready', and ensure they never
-    // fire before, as Electron will refuse to do various things if they do.
-    const appReady = getDeferred();
-    app.on('ready', () => appReady.resolve());
 
     // Handle invalid COMSPEC on Windows, which frequently causes issues on weird configurations:
     if (
@@ -652,9 +664,7 @@ if (!amMainInstance) {
     });
 
     Promise.all([appReady.promise, portsInUseCheck, reservedPortCheck]).then(async () => {
-        Menu.setApplicationMenu(
-            getMenu(windows, openNewWindow)
-        );
+        Menu.setApplicationMenu(getMenu(windows, openNewWindow));
 
         // Set up the UI bridge before creating the window, so the
         // port request handler is ready when the preload runs.
@@ -674,7 +684,7 @@ if (!amMainInstance) {
             event.sender.postMessage('htk-api-port', null, [port2]);
         });
 
-        createWindow(logStream);
+        createWindow();
 
         // Clean up any stale socket from a previous crash, then start
         if (!isWindows) {
@@ -688,8 +698,6 @@ if (!amMainInstance) {
         uiBridge.startApiServer(SOCKET_PATH);
     });
 
-    const openNewWindow = () => appReady.promise.then(() => createWindow(logStream));
-
     // We use a single process instance to manage the server, but we
     // do allow multiple windows.
     app.on('second-instance', openNewWindow);
@@ -698,9 +706,7 @@ if (!amMainInstance) {
         // On OS X it's common to re-create a window in the app when the
         // dock icon is clicked and there are no other windows open.
         if (windows.length === 0) {
-            // Wait until the ready event - it's possible that this can fire
-            // before the app is ready (not sure how) in which case things break!
-            appReady.promise.then(() => createWindow(logStream));
+            openNewWindow();
         }
     });
 
@@ -773,6 +779,10 @@ ipcMain.handle('open-context-menu', ipcHandler((options: ContextMenuDefinition) 
 ipcMain.handle('get-desktop-version', ipcHandler(() => DESKTOP_VERSION));
 ipcMain.handle('get-server-auth-token', ipcHandler(() => AUTH_TOKEN));
 ipcMain.handle('get-device-info', ipcHandler(() => getDeviceDetails()));
+
+ipcMain.handle('set-component-versions', ipcHandler((versions: Record<string, string>) => {
+    Menu.setApplicationMenu(getMenu(windows, openNewWindow, versions));
+}));
 
 let restarting = false;
 ipcMain.handle('restart-app', ipcHandler(() => {

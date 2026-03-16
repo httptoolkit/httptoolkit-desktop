@@ -51,6 +51,9 @@ contextBridge.exposeInMainWorld('desktopApi', {
     restartApp: () =>
         ipcInvoke('restart-app'),
 
+    setComponentVersions: (versions: Record<string, string>) =>
+        ipcInvoke('set-component-versions', versions),
+
     getPathForFile: (file: File) => webUtils.getPathForFile(file) || null,
 
     setApiOperations: (operations: any[]) => {
