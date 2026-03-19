@@ -1,7 +1,6 @@
 import * as electron from 'electron';
 const {
     contextBridge,
-    ipcRenderer,
     ipcRenderer: { invoke: ipcInvoke },
     webUtils
 } = electron;
@@ -54,47 +53,5 @@ contextBridge.exposeInMainWorld('desktopApi', {
     setComponentVersions: (versions: Record<string, string>) =>
         ipcInvoke('set-component-versions', versions),
 
-    getPathForFile: (file: File) => webUtils.getPathForFile(file) || null,
-
-    setApiOperations: (operations: any[]) => {
-        sendToPort({ type: 'operations', operations });
-    },
-    onOperationRequest: (callback: (operation: string, params: any) => Promise<any>) => {
-        operationHandler = callback;
-    }
-});
-
-// --- Bridge MessagePort setup ---
-// The preload owns the port. The page just registers a handler and sets operations.
-
-let apiPort: MessagePort | null = null;
-let operationHandler: ((operation: string, params: any) => Promise<any>) | null = null;
-let pendingMessages: any[] = [];
-
-function sendToPort(data: any): void {
-    if (apiPort) {
-        apiPort.postMessage(data);
-    } else {
-        pendingMessages.push(data);
-    }
-}
-
-ipcRenderer.send('request-htk-api-port');
-ipcRenderer.on('htk-api-port', (event: any) => {
-    apiPort = event.ports[0];
-    apiPort!.onmessage = (e: MessageEvent) => {
-        const data = e.data;
-        if (data?.type === 'request' && operationHandler) {
-            const { id, operation, params } = data;
-            Promise.resolve(operationHandler(operation, params))
-                .then(result => apiPort!.postMessage({ type: 'response', id, result }))
-                .catch(err => apiPort!.postMessage({
-                    type: 'response', id, error: String(err?.message ?? err)
-                }));
-        }
-    };
-    apiPort!.start();
-
-    for (const msg of pendingMessages) apiPort!.postMessage(msg);
-    pendingMessages = [];
+    getPathForFile: (file: File) => webUtils.getPathForFile(file) || null
 });

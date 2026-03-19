@@ -5,12 +5,12 @@ import { logError, addBreadcrumb } from './errors.ts';
 
 import { spawn, ChildProcess } from 'child_process';
 import * as os from 'os';
-import { promises as fs, mkdirSync, createWriteStream, WriteStream } from 'fs'
+import { promises as fs, createWriteStream, WriteStream } from 'fs'
 import * as path from 'path';
 import * as crypto from 'crypto';
 import * as querystring from 'querystring';
 import { URL } from 'url';
-import { app, BrowserWindow, shell, Menu, dialog, session, ipcMain, MessageChannelMain } from 'electron';
+import { app, BrowserWindow, shell, Menu, dialog, session, ipcMain } from 'electron';
 import yargs from 'yargs';
 import * as semver from 'semver';
 const rmRF = (p: string) => fs.rm(p, { recursive: true, force: true });
@@ -25,8 +25,6 @@ import { ContextMenuDefinition, openContextMenu } from './context-menu.ts';
 import { stopServer } from './stop-server.ts';
 import { getDeviceDetails } from './device.ts';
 import { SERVER_PORTS, checkPortsInUse, checkWindowsReservedPorts } from './port-checks.ts';
-
-import { UiBridge } from './ui-bridge.ts';
 
 import packageJson from '../package.json' with { type: 'json' };
 
@@ -48,28 +46,6 @@ const RESOURCES_PATH = APP_PATH.endsWith('app.asar')
     : APP_PATH; // Otherwise everything is in the root of the app
 const LOGS_PATH = app.getPath('logs');
 const LAST_RUN_LOG_PATH = path.join(LOGS_PATH, 'last-run.log');
-// NOTE: This logic is duplicated in src/cli/cli.ts — keep in sync.
-function getSocketDir(): string {
-    if (process.platform === 'linux' && process.env.XDG_RUNTIME_DIR) {
-        return process.env.XDG_RUNTIME_DIR; // Per-user, mode 0700
-    }
-
-    // macOS os.tmpdir() is per-user and private. On Linux this is the fallback
-    // when XDG_RUNTIME_DIR is unset (rare on desktop) — in that case os.tmpdir()
-    // returns /tmp which is world-writable, so we create a private subdirectory.
-    const tmpDir = os.tmpdir();
-    if (tmpDir === '/tmp' || tmpDir === '/var/tmp') {
-        const privateDir = path.join(tmpDir, `httptoolkit-${process.getuid!()}`);
-        mkdirSync(privateDir, { mode: 0o700, recursive: true });
-        return privateDir;
-    }
-
-    return tmpDir;
-}
-
-const SOCKET_PATH = isWindows
-    ? '\\\\.\\pipe\\httptoolkit-desktop'
-    : path.join(getSocketDir(), 'httptoolkit.sock');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -188,24 +164,8 @@ if (!amMainInstance) {
         .help()
         .argv;
 
-    // --- UI bridge setup ---
-    let uiBridge: UiBridge | undefined;
-
     let serverKilled = false;
     app.on('will-quit', async (event) => {
-        if (!isWindows) {
-            try {
-                await fs.unlink(SOCKET_PATH);
-            } catch (e: any) {
-                if (e.code !== 'ENOENT') console.log('Failed to clean up socket:', e);
-            }
-        }
-
-        if (uiBridge) {
-            uiBridge.destroy();
-            uiBridge = undefined;
-        }
-
         if (server && !serverKilled && !DEV_MODE) {
             // Don't shutdown until we've tried to kill the server
             event.preventDefault();
@@ -432,6 +392,7 @@ if (!amMainInstance) {
             ...process.env,
 
             HTK_SERVER_TOKEN: AUTH_TOKEN,
+            HTK_TOOLS_PATH: RESOURCES_PATH,
             NODE_SKIP_PLATFORM_CHECK: '1',
             OPENSSL_CONF: undefined, // Not relevant to us, and if set this can crash Node.js
 
@@ -663,39 +624,9 @@ if (!amMainInstance) {
         setTimeout(() => process.exit(3), 500);
     });
 
-    Promise.all([appReady.promise, portsInUseCheck, reservedPortCheck]).then(async () => {
+    Promise.all([appReady.promise, portsInUseCheck, reservedPortCheck]).then(() => {
         Menu.setApplicationMenu(getMenu(windows, openNewWindow));
-
-        // Set up the UI bridge before creating the window, so the
-        // port request handler is ready when the preload runs.
-        uiBridge = new UiBridge();
-
-        // When the preload requests a port, create a MessageChannel and
-        // give one end to the bridge and the other to the renderer.
-        // This fires on every page load (including after crashes/navigations),
-        // so the bridge automatically gets a fresh port — no explicit reset needed.
-        ipcMain.on('request-htk-api-port', (event) => {
-            if (!uiBridge) return;
-            // Only the first window gets the bridge port
-            if (windows.length > 0 && windows[0].webContents.id !== event.sender.id) return;
-
-            const { port1, port2 } = new MessageChannelMain();
-            uiBridge.setPort(port1);
-            event.sender.postMessage('htk-api-port', null, [port2]);
-        });
-
         createWindow();
-
-        // Clean up any stale socket from a previous crash, then start
-        if (!isWindows) {
-            await fs.unlink(SOCKET_PATH)
-            .catch((e: any) => {
-                if (e.code !== 'ENOENT') {
-                    logError(`Failed to reset socket: ${e.message || e}`);
-                }
-            });
-        }
-        uiBridge.startApiServer(SOCKET_PATH);
     });
 
     // We use a single process instance to manage the server, but we
