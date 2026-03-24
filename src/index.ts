@@ -392,7 +392,8 @@ if (!amMainInstance) {
             ...process.env,
 
             HTK_SERVER_TOKEN: AUTH_TOKEN,
-            HTK_TOOLS_PATH: RESOURCES_PATH,
+            HTK_DESKTOP_EXE: app.getPath('exe'),
+            HTK_DESKTOP_RESOURCES: RESOURCES_PATH,
             NODE_SKIP_PLATFORM_CHECK: '1',
             OPENSSL_CONF: undefined, // Not relevant to us, and if set this can crash Node.js
 

@@ -1,3 +1,10 @@
 #!/bin/sh
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+APP_DIR="$(dirname "$SCRIPT_DIR")"
+export HTK_DESKTOP_RESOURCES="$SCRIPT_DIR"
+if [ "$(uname)" = "Darwin" ]; then
+    export HTK_DESKTOP_EXE="$APP_DIR/MacOS/HTTP Toolkit"
+else
+    export HTK_DESKTOP_EXE="$APP_DIR/httptoolkit"
+fi
 exec "$SCRIPT_DIR/httptoolkit-server/bin/httptoolkit-server" ctl "$@"
