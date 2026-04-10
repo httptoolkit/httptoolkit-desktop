@@ -168,7 +168,7 @@
     "cross-env": "^7.0.3",
     "electron": "^39.2.7",
     "electron-builder": "^26.6.0",
-    "lodash": "^4.17.23",
+    "lodash": "^4.18.1",
     "targz": "^1.0.1",
     "tsc-watch": "^4.2.9",
     "tsx": "^4.16.2",
