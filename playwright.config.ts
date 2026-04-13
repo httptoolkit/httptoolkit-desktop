@@ -2,7 +2,6 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
     testDir: './test',
-    testIgnore: 'ui-bridge.spec.ts',
     timeout: 30000,
     workers: 1,
     retries: 0,
