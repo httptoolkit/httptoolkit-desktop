@@ -181,6 +181,13 @@ jobs:
     # wingetcreate only runs on Windows
     runs-on: windows-latest
     steps:
+      - name: Sync winget-pkgs fork with upstream
+        env:
+          GH_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
+        run: |
+          $forkOwner = gh api user --jq '.login'
+          gh repo sync "$forkOwner/winget-pkgs" --source microsoft/winget-pkgs
+
       - name: Submit package using wingetcreate
         run: |
           $packageVersion = "${{ github.ref }}" -replace 'refs/tags/v', ''
