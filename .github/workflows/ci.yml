@@ -33,7 +33,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 22.20.0
+          node-version: 24.15.0
           check-latest: true
           cache: 'npm'
 
