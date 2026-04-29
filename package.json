@@ -80,7 +80,13 @@
       ],
       "artifactName": "HttpToolkit-${version}-${os}-${arch}.${ext}",
       "icon": "./src/icons/icon.ico",
-      "forceCodeSigning": true
+      "forceCodeSigning": true,
+      "azureSignOptions": {
+        "publisherName": "Toolshed Labs S.L.",
+        "endpoint": "https://weu.codesigning.azure.net",
+        "codeSigningAccountName": "tsl-code-signing",
+        "certificateProfileName": "toolshed-labs"
+      }
     },
     "nsis": {
       "installerIcon": "./src/icons/icon.ico",

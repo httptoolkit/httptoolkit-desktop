@@ -28,6 +28,12 @@ jobs:
             arch: arm64
             os: "macos-14"
     runs-on: ${{ matrix.os }}
+    environment: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && 'production' || null }}
+    permissions:
+      contents: read
+      id-token: write # OIDC with Azure for Windows signing
+    env:
+      IS_RELEASE: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
     steps:
       - uses: actions/checkout@v6
 
@@ -50,14 +56,21 @@ jobs:
 
       # The API key in APPLE_API_KEY is a PEM cert that must be read from disk:
       - name: Prepare Apple API key
+        if: env.IS_RELEASE == 'true' && startsWith(matrix.os, 'macos-')
         run: echo "$APPLE_API_KEY" > ./apple-api-key.p8
-        if: github.event_name == 'push' && startsWith(matrix.os, 'macos-')
         env:
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
 
-      # On push we do signed builds, on PRs we do unsigned builds only (next step)
+      - name: Azure login for Windows signing
+        if: env.IS_RELEASE == 'true' && matrix.platform == 'windows'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+
       - name: Run signed build
-        if: github.event_name == 'push'
+        if: env.IS_RELEASE == 'true'
         run: npm run build
         env:
           ENABLE_SIGNING: true
@@ -69,14 +82,16 @@ jobs:
           # For Mac signing:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          # For Windows signing:
-          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          # For Windows signing via Azure Artifact Signing:
+          AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          # Workaround for broken electron-builder Azure auth validation:
+          AZURE_USERNAME: skip-preflight-use-workload-identity
           # Workaround - see FPM install step above
           USE_SYSTEM_FPM: ${{ matrix.platform == 'linux' && matrix.arch == 'arm64' }}
 
       - name: Run unsigned build
-        if: github.event_name != 'push'
+        if: env.IS_RELEASE != 'true'
         run: npm run build
         env:
           ENABLE_SIGNING: false
