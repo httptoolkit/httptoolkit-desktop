@@ -22,9 +22,10 @@ import { getDeferred } from '@httptoolkit/util';
 
 import { getMenu, shouldAutoHideMenu } from './menu.ts';
 import { ContextMenuDefinition, openContextMenu } from './context-menu.ts';
+import getPort from 'get-port';
+
 import { stopServer } from './stop-server.ts';
 import { getDeviceDetails } from './device.ts';
-import { SERVER_PORTS, checkPortsInUse, checkWindowsReservedPorts } from './port-checks.ts';
 
 import packageJson from '../package.json' with { type: 'json' };
 
@@ -52,6 +53,23 @@ const LAST_RUN_LOG_PATH = path.join(LOGS_PATH, 'last-run.log');
 let windows: Electron.BrowserWindow[] = [];
 
 let server: ChildProcess | null = null;
+
+interface ServerPorts {
+    serverPort: number;
+    mockttpPort: number;
+}
+
+// Pick two random available ports in parallel. We deliberately don't constrain
+// to a fixed range: if there's a conflict or race, restarting the app picks
+// fresh ports and is likely to succeed.
+const pickServerPorts = async (): Promise<ServerPorts> => {
+    const [serverPort, mockttpPort] = await Promise.all([getPort(), getPort()]);
+    return { serverPort, mockttpPort };
+};
+
+// Resolved before any window or server is started, to inject into the renderer
+// synchronously via additionalArguments and into the server via CLI flags.
+let serverPorts: ServerPorts;
 
 app.commandLine.appendSwitch('ignore-connections-limit', 'app.httptoolkit.tech');
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
@@ -85,7 +103,15 @@ const createWindow = () => {
         webPreferences: {
             preload: path.join(import.meta.dirname, 'preload.cjs'),
             contextIsolation: true,
-            nodeIntegration: false
+            nodeIntegration: false,
+            // Pass startup-time values into the preload synchronously, so the
+            // UI can read them via desktopApi getters without awaiting IPC.
+            additionalArguments: [
+                `--htk-desktop-version=${DESKTOP_VERSION}`,
+                `--htk-server-auth-token=${AUTH_TOKEN}`,
+                `--htk-server-port=${serverPorts.serverPort}`,
+                `--htk-mockttp-port=${serverPorts.mockttpPort}`
+            ]
         },
 
         show: false
@@ -150,7 +176,12 @@ const writeLog = (message: string) => {
     getLogStream().write(message + '\n');
 }
 
-const openNewWindow = () => appReady.promise.then(() => createWindow());
+// Resolved once serverPorts is populated, after the main-instance branch
+// initialises it. createWindow reads serverPorts to seed additionalArguments.
+const portsResolved = getDeferred<ServerPorts>();
+
+const openNewWindow = () => Promise.all([appReady.promise, portsResolved.promise])
+    .then(() => createWindow());
 
 const amMainInstance = app.requestSingleInstanceLock();
 if (!amMainInstance) {
@@ -173,7 +204,7 @@ if (!amMainInstance) {
             serverKilled = true;
 
             try {
-                await stopServer(server, AUTH_TOKEN);
+                await stopServer(server, AUTH_TOKEN, serverPorts.serverPort);
             } catch (error) {
                 console.log('Failed to kill server', error);
                 logError(error);
@@ -405,7 +436,13 @@ if (!amMainInstance) {
                 ].join(' ')
         }
 
-        server = spawn(serverBinCommand, ['start'], {
+        const serverArgs = [
+            'start',
+            '--server-port', String(serverPorts.serverPort),
+            '--mockttp-port', String(serverPorts.mockttpPort)
+        ];
+
+        server = spawn(serverBinCommand, serverArgs, {
             windowsHide: true,
             stdio: ['inherit', 'pipe', 'pipe'],
             shell: isWindows, // Required to spawn a .cmd script
@@ -516,47 +553,18 @@ if (!amMainInstance) {
         process.env.COMSPEC = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'cmd.exe');
     }
 
-    // Check if our required ports are already in use by another process
-    const portsInUseCheck = checkPortsInUse('127.0.0.1', [...SERVER_PORTS])
-        .then(async (portsInUse) => {
-            if (portsInUse.length === 0) return;
-            if (DEV_MODE) return; // In full dev mode this is OK & expected
-
-            await appReady.promise;
-
-            const portList = portsInUse.join(', ');
-            showErrorAlert(
-                "HTTP Toolkit could not start",
-                `HTTP Toolkit's required port${portsInUse.length > 1 ? 's' : ''} (${portList}) ` +
-                `${portsInUse.length > 1 ? 'are' : 'is'} already in use.\n\n` +
-                "Do you have another HTTP Toolkit process running somewhere?\n" +
-                "Please close the other process using this port, and try again.\n\n" +
-                "(Having trouble? File an issue at github.com/httptoolkit/httptoolkit)"
-            );
-
-            process.exit(2);
-        });
-
-    // On Windows, check if Hyper-V/WSL has reserved our ports (separate from 'in use' above)
-    const reservedPortCheck = checkWindowsReservedPorts([...SERVER_PORTS])
-        .then(async (reservedPorts) => {
-            if (reservedPorts.length === 0) return;
-            if (DEV_MODE) return;
-
-            await appReady.promise;
-
-            const portList = reservedPorts.join(', ');
-            await showErrorAlert(
-                "HTTP Toolkit could not start",
-                `HTTP Toolkit's required port${reservedPorts.length > 1 ? 's' : ''} (${portList}) ` +
-                `${reservedPorts.length > 1 ? 'have' : 'has'} been reserved by Windows.\n\n` +
-                "This is usually caused by Hyper-V or WSL reserving ports for its own use. " +
-                "This can be fixed by adjusting your Windows network configuration.",
-                "https://httptoolkit.com/docs/guides/troubleshooting/#http-toolkit-conflicts-with-hyper-v"
-            );
-
-            process.exit(2);
-        });
+    // Pick random available ports for the server & mockttp admin API. Random
+    // (rather than a fixed range) means that a transient conflict or race is
+    // self-healing: restarting the app will likely pick a different pair.
+    // In DEV_MODE we use the historic defaults, so a separately-launched dev
+    // server stays reachable.
+    (DEV_MODE
+        ? Promise.resolve({ serverPort: 45457, mockttpPort: 45456 })
+        : pickServerPorts()
+    ).then((ports) => {
+        serverPorts = ports;
+        portsResolved.resolve(ports);
+    }, portsResolved.reject);
 
     // Check we're happy using the default proxy settings
     getSystemProxy()
@@ -613,8 +621,7 @@ if (!amMainInstance) {
 
     Promise.all([
         cleanupOldServers().catch(console.log),
-        portsInUseCheck,
-        reservedPortCheck
+        portsResolved.promise
     ]).then(() =>
         startServer()
     ).catch((err) => {
@@ -625,7 +632,7 @@ if (!amMainInstance) {
         setTimeout(() => process.exit(3), 500);
     });
 
-    Promise.all([appReady.promise, portsInUseCheck, reservedPortCheck]).then(() => {
+    Promise.all([appReady.promise, portsResolved.promise]).then(() => {
         Menu.setApplicationMenu(getMenu(windows, openNewWindow));
         createWindow();
     });
@@ -708,8 +715,6 @@ ipcMain.handle('open-context-menu', ipcHandler((options: ContextMenuDefinition) 
     openContextMenu(options)
 ));
 
-ipcMain.handle('get-desktop-version', ipcHandler(() => DESKTOP_VERSION));
-ipcMain.handle('get-server-auth-token', ipcHandler(() => AUTH_TOKEN));
 ipcMain.handle('get-device-info', ipcHandler(() => getDeviceDetails()));
 
 ipcMain.handle('set-component-versions', ipcHandler((versions: Record<string, string>) => {

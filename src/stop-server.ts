@@ -13,8 +13,8 @@ const isRunning = (pid: number) => {
     }
 }
 
-export async function stopServer(proc: ChildProcess.ChildProcess, token: string) {
-    await softShutdown(token)
+export async function stopServer(proc: ChildProcess.ChildProcess, token: string, serverPort: number) {
+    await softShutdown(token, serverPort)
         .catch(console.log); // If that fails, continue shutting down anyway
 
     // In each case, that triggers a clean shutdown. We want to make sure it definitely shuts
@@ -33,7 +33,7 @@ export async function stopServer(proc: ChildProcess.ChildProcess, token: string)
     } while (isRunning(proc.pid!))
 }
 
-function softShutdown(token: string) {
+function softShutdown(token: string, serverPort: number) {
     // We first try to cleanly shut down the server, so it can clean up after itself.
     // On Mac & Linux, we could shut down the server with SIGTERM, with some fiddling to detach it
     // so that we kill the full shell script + node tree. On Windows that's not possible though,
@@ -42,7 +42,7 @@ function softShutdown(token: string) {
 
     // To handle all this, we send a HTTP request to the GraphQL API instead, which triggers the same thing.
     return new Promise<void>((resolve, reject) => {
-        const req = http.request("http://127.0.0.1:45457/shutdown", {
+        const req = http.request(`http://127.0.0.1:${serverPort}/shutdown`, {
             method: 'POST',
             headers: {
                 'origin': 'https://app.httptoolkit.tech',
