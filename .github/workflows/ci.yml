@@ -85,8 +85,6 @@ jobs:
           # For Windows signing via Azure Artifact Signing:
           AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
           AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
-          # Workaround for broken electron-builder Azure auth validation:
-          AZURE_USERNAME: skip-preflight-use-workload-identity
           # Workaround - see FPM install step above
           USE_SYSTEM_FPM: ${{ matrix.platform == 'linux' && matrix.arch == 'arm64' }}
 
