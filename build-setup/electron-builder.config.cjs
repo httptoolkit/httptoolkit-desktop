@@ -27,6 +27,7 @@ if (unsignedMode) {
   config.mac.forceCodeSigning = false;
   config.mac.notarize = false;
   config.win.forceCodeSigning = false;
+  delete config.win.azureSignOptions;
   process.env.CSC_IDENTITY_AUTO_DISCOVERY = 'false';
 } else {
   console.log('\nBuilding in SIGNED mode\n');
