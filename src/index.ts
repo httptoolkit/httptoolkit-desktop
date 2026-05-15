@@ -218,8 +218,12 @@ if (!amMainInstance) {
         contents.on('will-navigate', (event: Electron.Event, navigationUrl: string) => {
             const parsedUrl = new URL(navigationUrl);
 
-            checkForUnsafeNavigation(parsedUrl);
-            if (!hasTrustedOrigin(parsedUrl)) {
+            if (!checkForUnsafeProtocol(parsedUrl)) {
+                console.warn(`Blocked navigation to unsafe url: ${navigationUrl}`);
+                event.preventDefault();
+                // Don't open the URL. Concern here is things like 'file' which
+                // could launch an exe or similar.
+            } else if (!hasTrustedOrigin(parsedUrl)) {
                 event.preventDefault();
                 handleExternalNavigation(parsedUrl);
             }
@@ -227,8 +231,10 @@ if (!amMainInstance) {
         contents.setWindowOpenHandler((openDetails) => {
             const parsedUrl = new URL(openDetails.url);
 
-            checkForUnsafeNavigation(parsedUrl);
-            if (!hasTrustedOrigin(parsedUrl)) {
+            if (!checkForUnsafeProtocol(parsedUrl)) {
+                console.warn(`Blocked window open for unsafe url: ${openDetails.url}`);
+                return { action: 'deny' };
+            } else if (!hasTrustedOrigin(parsedUrl)) {
                 handleExternalNavigation(parsedUrl);
                 return { action: 'deny' };
             } else {
@@ -275,12 +281,12 @@ if (!amMainInstance) {
         });
     });
 
-    function checkForUnsafeNavigation(url: URL) {
+    function checkForUnsafeProtocol(url: URL) {
         if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-            // This suggests an attempted XSS attack of some sort, report it:
-            const error = new Error(`Attempt to open a dangerous non-HTTP url: ${url}`);
-            throw error;
+            console.warn(`Attempt to open a non-HTTP url: ${url}`);
+            return false;
         }
+        return true;
     }
 
     function handleExternalNavigation(url: URL) {
@@ -290,7 +296,6 @@ if (!amMainInstance) {
                     "Failed to open URL",
                     `HTTP Toolkit could not open ${url.toString()} in your browser, because: ${error?.message ?? error ?? 'unknown error'}`
                 );
-                throw error;
             });
     }
 
