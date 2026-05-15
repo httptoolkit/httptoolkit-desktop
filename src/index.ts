@@ -147,7 +147,9 @@ const getLogStream = () => {
 };
 
 const writeLog = (message: string) => {
-    getLogStream().write(message + '\n');
+    const stream = getLogStream();
+    if (stream.closed) return;
+    stream.write(message + '\n');
 }
 
 const openNewWindow = () => appReady.promise.then(() => createWindow());
