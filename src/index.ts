@@ -244,7 +244,7 @@ if (!amMainInstance) {
             );
 
             setImmediate(() => {
-                contents.reload();
+                if (!contents.isDestroyed()) contents.reload();
             });
         });
 
@@ -268,7 +268,7 @@ if (!amMainInstance) {
             );
 
             setTimeout(() => {
-                contents.reload();
+                if (!contents.isDestroyed()) contents.reload();
             }, 2000);
         });
     });
@@ -486,7 +486,9 @@ if (!amMainInstance) {
             // Retry limited times, but not for near-immediate failures.
             if (retries > 0 && serverRunTime > 5000) {
                 // This will break the app, so refresh it
-                windows.forEach(window => window.reload());
+                windows.forEach(window => {
+                    if (!window.isDestroyed()) window.reload();
+                });
                 return startServer(retries - 1);
             }
 
