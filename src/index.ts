@@ -664,9 +664,9 @@ if (!amMainInstance) {
 // 3rd party sites) but it's good practice for defense-in-depth etc. We allow calls with an empty URL
 // because the preload script fires IPC invocations before navigation completes, so the frame URL is
 // not yet set at that point.
-const ipcHandler = <A, R>(fn: (...args: A[]) => R) => (
+const ipcHandler = <A extends any[], R>(fn: (...args: A) => R) => (
     event: Electron.IpcMainInvokeEvent,
-    ...args: A[]
+    ...args: A
 ): R => {
     if (!event.senderFrame) {
         throw new Error('IPC call from destroyed frame');
