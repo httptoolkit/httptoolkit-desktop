@@ -23,6 +23,7 @@ import { getDeferred } from '@httptoolkit/util';
 import { getMenu, shouldAutoHideMenu } from './menu.ts';
 import { ContextMenuDefinition, openContextMenu } from './context-menu.ts';
 import { stopServer } from './stop-server.ts';
+import { shouldClearStaleUICache, clearUICache, recordUIRun } from './cache-cleanup.ts';
 import { getDeviceDetails } from './device.ts';
 import { SERVER_PORTS, checkPortsInUse, checkWindowsReservedPorts } from './port-checks.ts';
 
@@ -634,7 +635,39 @@ if (!amMainInstance) {
         setTimeout(() => process.exit(3), 500);
     });
 
-    Promise.all([appReady.promise, portsInUseCheck, reservedPortCheck]).then(() => {
+    // Decide whether we need to reset the UI cache (desktop upgrade + outdated UI)
+    const userDataPath = app.getPath('userData');
+    const cacheDecision: Promise<boolean> = DEV_MODE
+        ? Promise.resolve(false)
+        : shouldClearStaleUICache({
+            userDataPath,
+            currentVersion: DESKTOP_VERSION,
+            log: writeLog,
+            reportError: logError
+        });
+
+    // If so, we clear before the first window loads, so a stale service worker isn't reused. Clearing
+    // must not block launch though: on failure we log, leave the cache in place and carry on.
+    const uiCacheReady = Promise.all([appReady.promise, cacheDecision])
+        .then(async ([, shouldClear]) => {
+            if (shouldClear) await clearUICache(session.defaultSession);
+        })
+        .catch((error) => {
+            writeLog(`Failed to clear UI cache: ${error}`);
+            logError(error);
+        });
+
+    // Record last-run info async (used for the outdated cache checks above in future runs):
+    if (!DEV_MODE) {
+        Promise.all([appReady.promise, cacheDecision])
+            .then(() => recordUIRun(userDataPath, DESKTOP_VERSION))
+            .catch((error) => {
+                writeLog(`Failed to record desktop run: ${error}`);
+                logError(error);
+            });
+    }
+
+    Promise.all([appReady.promise, portsInUseCheck, reservedPortCheck, uiCacheReady]).then(() => {
         Menu.setApplicationMenu(getMenu(windows, openNewWindow));
         createWindow();
     });
