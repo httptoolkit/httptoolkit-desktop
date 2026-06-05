@@ -7,27 +7,30 @@ const {
 
 import type { ContextMenuDefinition } from './context-menu.ts';
 
-// These are technically asynchronous, but they're so fast that
-// they're effectively sychronously available - this seems to
-// run before inline scripts in the page itself, let alone the
-// main app code. Nonetheless, to be safe the UI can wait for
-// the preload promise here to confirm it's definitely ready.
-let desktopVersion: string | undefined;
-let authToken: string | undefined;
-let deviceInfo: {} | undefined;
+// Read values passed sync in additionalArguments:
+const readArg = (name: string): string | undefined => {
+    const prefix = `--${name}=`;
+    const arg = process.argv.find(a => a.startsWith(prefix));
+    return arg?.slice(prefix.length);
+};
 
-const preloadPromise = Promise.all([
-    ipcInvoke('get-desktop-version')
-        .then(result => { desktopVersion = result; }),
-    ipcInvoke('get-server-auth-token')
-        .then(result => { authToken = result; }),
-    Promise.race([
-        ipcInvoke('get-device-info')
-            .then(result => { deviceInfo = result; }),
-        // Give up after 500m - might complete later, but we don't
-        // want to block 'API ready' for this info.
-        new Promise((resolve) => setTimeout(resolve, 500))
-    ])
+const desktopVersion = readArg('htk-desktop-version');
+const authToken = readArg('htk-server-auth-token');
+
+const parsePort = (raw: string | undefined): number | undefined => {
+    if (!raw) return undefined;
+    const port = Number(raw);
+    return Number.isInteger(port) && port > 0 && port < 65536 ? port : undefined;
+};
+const serverPort = parsePort(readArg('htk-server-port'));
+const mockttpPort = parsePort(readArg('htk-mockttp-port'));
+
+let deviceInfo: {} | undefined;
+const preloadPromise = Promise.race([
+    ipcInvoke('get-device-info').then(result => { deviceInfo = result; }),
+    // Give up after 500ms - might complete later, but we don't want to block
+    // 'API ready' for this info.
+    new Promise((resolve) => setTimeout(resolve, 500))
 ]);
 
 contextBridge.exposeInMainWorld('desktopApi', {
@@ -36,6 +39,9 @@ contextBridge.exposeInMainWorld('desktopApi', {
     getDesktopVersion: () => desktopVersion,
     getServerAuthToken: () => authToken,
     getDeviceInfo: () => deviceInfo,
+
+    getServerPort: () => serverPort,
+    getMockttpPort: () => mockttpPort,
 
     selectApplication: () =>
         ipcInvoke('select-application'),

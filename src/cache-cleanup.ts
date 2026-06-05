@@ -20,7 +20,7 @@ interface LastRunData {
     timestamp: number;
 }
 
-// Read previous run record, or null if we've never written one (first run, or a pre-v1.27 install).
+// Read previous run record, or null if we've never written one (first run, or older install).
 const readLastRun = async (filePath: string): Promise<LastRunData | null> => {
     let content: string;
     try {
@@ -42,7 +42,7 @@ const readLastRun = async (filePath: string): Promise<LastRunData | null> => {
     }
 };
 
-// The window-state.json mtime, or null if absent. Used as a last-used fallback for pre-v1.27 installs,
+// The window-state.json mtime, or null if absent. Used as a last-used fallback for older installs,
 // which have no run record of their own but do leave this behind on every window move/resize/close.
 const readWindowStateMtime = async (userDataPath: string): Promise<number | null> => {
     try {
