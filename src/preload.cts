@@ -25,6 +25,23 @@ const parsePort = (raw: string | undefined): number | undefined => {
 const serverPort = parsePort(readArg('htk-server-port'));
 const mockttpPort = parsePort(readArg('htk-mockttp-port'));
 
+// [DIAG] Report what the preload actually received. This is the crux: under --no-sandbox (arm64 CI)
+// vs the default sandbox (x64 CI), confirm whether additionalArguments reach process.argv here.
+// These console.* calls surface in the CI log via the main process' console-message echo.
+try {
+    const sandboxed = (process as unknown as { sandboxed?: boolean }).sandboxed;
+    console.log('[DIAG][PRELOAD] sandboxed=', sandboxed, 'argvLen=', process.argv.length);
+    console.log('[DIAG][PRELOAD] process.argv=', JSON.stringify(process.argv));
+    console.log('[DIAG][PRELOAD] parsed:',
+        'desktopVersion=', desktopVersion,
+        'authTokenPresent=', !!authToken, 'authTokenLen=', authToken ? authToken.length : 0,
+        'serverPort=', serverPort,
+        'mockttpPort=', mockttpPort
+    );
+} catch (e) {
+    console.log('[DIAG][PRELOAD] diagnostics threw:', e);
+}
+
 let deviceInfo: {} | undefined;
 const preloadPromise = Promise.race([
     ipcInvoke('get-device-info').then(result => { deviceInfo = result; }),

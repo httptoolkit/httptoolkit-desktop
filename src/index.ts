@@ -89,6 +89,16 @@ const createWindow = () => {
         defaultHeight: 768
     });
 
+    // [DIAG] Build additionalArguments separately so we can log exactly what we pass.
+    const additionalArguments = [
+        `--htk-desktop-version=${DESKTOP_VERSION}`,
+        `--htk-server-auth-token=${AUTH_TOKEN}`,
+        `--htk-server-port=${serverPorts?.serverPort}`,
+        `--htk-mockttp-port=${serverPorts?.mockttpPort}`
+    ];
+    console.log('[DIAG][MAIN] createWindow; serverPorts =', JSON.stringify(serverPorts),
+        '; additionalArguments =', JSON.stringify(additionalArguments));
+
     const window = new BrowserWindow({
         title: 'HTTP Toolkit',
         backgroundColor: '#d8e2e6',
@@ -107,12 +117,7 @@ const createWindow = () => {
             nodeIntegration: false,
             // Pass startup-time values into the preload synchronously, so the
             // UI can read them via desktopApi getters without awaiting IPC.
-            additionalArguments: [
-                `--htk-desktop-version=${DESKTOP_VERSION}`,
-                `--htk-server-auth-token=${AUTH_TOKEN}`,
-                `--htk-server-port=${serverPorts.serverPort}`,
-                `--htk-mockttp-port=${serverPorts.mockttpPort}`
-            ]
+            additionalArguments
         },
 
         show: false
@@ -129,7 +134,23 @@ const createWindow = () => {
     // Stream renderer console output directly into our log file:
     window.webContents.on('console-message', ({ level, message }) => {
         writeLog(`${level}: ${message}`);
+        // [DIAG] Also echo renderer/preload console to main-process stdout, so it reaches the CI log.
+        console.log(`[DIAG][RENDERER ${level}] ${message}`);
     });
+
+    // [DIAG] Window/webContents lifecycle, to see how far load gets on arm64.
+    window.webContents.on('did-start-loading', () => console.log('[DIAG][MAIN] did-start-loading'));
+    window.webContents.on('did-finish-load', () =>
+        console.log('[DIAG][MAIN] did-finish-load url=', window.webContents.getURL()));
+    window.webContents.on('did-fail-load', (_e, code, desc, url, isMainFrame) =>
+        console.log(`[DIAG][MAIN] did-fail-load code=${code} desc=${desc} url=${url} mainFrame=${isMainFrame}`));
+    window.webContents.on('dom-ready', () => console.log('[DIAG][MAIN] dom-ready'));
+    window.webContents.on('render-process-gone', (_e, details) =>
+        console.log('[DIAG][MAIN] render-process-gone', JSON.stringify(details)));
+    window.webContents.on('unresponsive', () => console.log('[DIAG][MAIN] webContents unresponsive'));
+    window.webContents.on('preload-error', (_e, preloadPath, error) =>
+        console.log('[DIAG][MAIN] preload-error', preloadPath, error?.message ?? error));
+    window.on('ready-to-show', () => console.log('[DIAG][MAIN] ready-to-show'));
 
     // Limit permissions to our trusted origin only. This shouldn't be required (we don't allow loading
     // 3rd party sites) but it's good practice for defense-in-depth etc. We don't limit permissions
@@ -192,6 +213,13 @@ if (!amMainInstance) {
     app.quit();
 } else {
     writeLog(`--- Launching HTTP Toolkit desktop v${DESKTOP_VERSION} at ${new Date().toISOString()} ---`);
+
+    // [DIAG] Main-process startup facts. process.argv confirms whether --no-sandbox was passed
+    // (the smoke test only adds it on arm64), which is the key arch difference under investigation.
+    console.log('[DIAG][MAIN] platform=', process.platform, 'arch=', process.arch, 'electron=', process.versions.electron);
+    console.log('[DIAG][MAIN] DEV_MODE=', DEV_MODE, 'DESKTOP_VERSION=', DESKTOP_VERSION,
+        'AUTH_TOKEN.length=', AUTH_TOKEN.length);
+    console.log('[DIAG][MAIN] process.argv=', JSON.stringify(process.argv));
 
     yargs
         .version(DESKTOP_VERSION)
@@ -449,6 +477,7 @@ if (!amMainInstance) {
             '--server-port', String(serverPorts.serverPort),
             '--mockttp-port', String(serverPorts.mockttpPort)
         ];
+        console.log('[DIAG][MAIN] spawning server:', serverBinCommand, JSON.stringify(serverArgs)); // [DIAG]
 
         server = spawn(serverBinCommand, serverArgs, {
             windowsHide: true,
@@ -573,8 +602,12 @@ if (!amMainInstance) {
         : pickServerPorts()
     ).then((ports) => {
         serverPorts = ports;
+        console.log('[DIAG][MAIN] serverPorts resolved =', JSON.stringify(ports)); // [DIAG]
         portsResolved.resolve(ports);
-    }, portsResolved.reject);
+    }, (err) => {
+        console.log('[DIAG][MAIN] pickServerPorts failed:', err); // [DIAG]
+        portsResolved.reject(err);
+    });
 
     // Check we're happy using the default proxy settings
     getSystemProxy()
