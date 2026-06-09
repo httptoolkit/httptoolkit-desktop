@@ -22,7 +22,7 @@ import { getDeferred } from '@httptoolkit/util';
 
 import { getMenu, shouldAutoHideMenu } from './menu.ts';
 import { ContextMenuDefinition, openContextMenu } from './context-menu.ts';
-import getPort from 'get-port';
+import getPort, { portNumbers } from 'get-port';
 
 import { stopServer } from './stop-server.ts';
 import { shouldClearStaleUICache, clearUICache, recordUIRun } from './cache-cleanup.ts';
@@ -60,11 +60,16 @@ interface ServerPorts {
     mockttpPort: number;
 }
 
-// Pick two random available ports in parallel. We deliberately don't constrain
-// to a fixed range: if there's a conflict or race, restarting the app picks
-// fresh ports and is likely to succeed.
+// Port range outside ephemeral, so unlikely to race externally during the
+// (near) inevitable TOCTOU as we pass the port config to the server.
+const SERVER_PORT_RANGE_START = 28000;
+const SERVER_PORT_RANGE_END = 29999;
+
 const pickServerPorts = async (): Promise<ServerPorts> => {
-    const [serverPort, mockttpPort] = await Promise.all([getPort(), getPort()]);
+    const [serverPort, mockttpPort] = await Promise.all([
+        getPort({ port: portNumbers(SERVER_PORT_RANGE_START, SERVER_PORT_RANGE_END) }),
+        getPort({ port: portNumbers(SERVER_PORT_RANGE_START, SERVER_PORT_RANGE_END) })
+    ]);
     return { serverPort, mockttpPort };
 };
 
@@ -592,23 +597,6 @@ if (!amMainInstance) {
         process.env.COMSPEC = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'cmd.exe');
     }
 
-    // Pick random available ports for the server & mockttp admin API. Random
-    // (rather than a fixed range) means that a transient conflict or race is
-    // self-healing: restarting the app will likely pick a different pair.
-    // In DEV_MODE we use the historic defaults, so a separately-launched dev
-    // server stays reachable.
-    (DEV_MODE
-        ? Promise.resolve({ serverPort: 45457, mockttpPort: 45456 })
-        : pickServerPorts()
-    ).then((ports) => {
-        serverPorts = ports;
-        console.log('[DIAG][MAIN] serverPorts resolved =', JSON.stringify(ports)); // [DIAG]
-        portsResolved.resolve(ports);
-    }, (err) => {
-        console.log('[DIAG][MAIN] pickServerPorts failed:', err); // [DIAG]
-        portsResolved.reject(err);
-    });
-
     // Check we're happy using the default proxy settings
     getSystemProxy()
         .then((proxyConfig) => {
@@ -662,12 +650,17 @@ if (!amMainInstance) {
             return undefined;
         });
 
-    Promise.all([
-        cleanupOldServers().catch(console.log),
-        portsResolved.promise
-    ]).then(() =>
-        startServer()
-    ).catch((err) => {
+    cleanupOldServers().catch(console.log).then(async () => {
+        // N.b. we pick the ports as late as possible to limit TOCTOU window
+        const ports = DEV_MODE
+            ? { serverPort: 45457, mockttpPort: 45456 }
+            : await pickServerPorts();
+        serverPorts = ports;
+        console.log('[DIAG][MAIN] serverPorts resolved =', JSON.stringify(ports)); // [DIAG]
+        portsResolved.resolve(ports);
+
+        return startServer();
+    }).catch((err) => {
         console.error('Failed to start server, exiting.', err);
 
         // Hide immediately, shutdown entirely after a brief pause for Sentry
