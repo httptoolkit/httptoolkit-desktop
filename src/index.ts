@@ -5,6 +5,7 @@ import { logError, addBreadcrumb } from './errors.ts';
 
 import { spawn, ChildProcess } from 'child_process';
 import * as os from 'os';
+import * as net from 'net'; // [DIAG] for server-port reachability probe
 import { promises as fs, createWriteStream, WriteStream } from 'fs'
 import * as path from 'path';
 import * as crypto from 'crypto';
@@ -55,6 +56,11 @@ let windows: Electron.BrowserWindow[] = [];
 
 let server: ChildProcess | null = null;
 
+// [DIAG] Phase timing: elapsed ms since the main process started, to find where startup time goes
+// on the slow arm64 runs. Each milestone logs to stdout (captured by the smoke test -> CI log).
+const T_START = Date.now();
+const diagT = (label: string) => console.log(`[DIAG][T+${Date.now() - T_START}ms] ${label}`);
+
 interface ServerPorts {
     serverPort: number;
     mockttpPort: number;
@@ -101,8 +107,7 @@ const createWindow = () => {
         `--htk-server-port=${serverPorts?.serverPort}`,
         `--htk-mockttp-port=${serverPorts?.mockttpPort}`
     ];
-    console.log('[DIAG][MAIN] createWindow; serverPorts =', JSON.stringify(serverPorts),
-        '; additionalArguments =', JSON.stringify(additionalArguments));
+    diagT(`createWindow; serverPorts = ${JSON.stringify(serverPorts)}`);
 
     const window = new BrowserWindow({
         title: 'HTTP Toolkit',
@@ -143,19 +148,22 @@ const createWindow = () => {
         console.log(`[DIAG][RENDERER ${level}] ${message}`);
     });
 
-    // [DIAG] Window/webContents lifecycle, to see how far load gets on arm64.
-    window.webContents.on('did-start-loading', () => console.log('[DIAG][MAIN] did-start-loading'));
-    window.webContents.on('did-finish-load', () =>
-        console.log('[DIAG][MAIN] did-finish-load url=', window.webContents.getURL()));
+    // [DIAG] Window/webContents lifecycle with timestamps, to see where load time goes on arm64.
+    window.webContents.on('did-start-loading', () => diagT('webContents did-start-loading'));
+    window.webContents.on('did-start-navigation', (_e, url, _inPage, isMainFrame) => {
+        if (isMainFrame) diagT(`webContents did-start-navigation ${url}`);
+    });
+    window.webContents.on('did-finish-load', () => diagT(`webContents did-finish-load url=${window.webContents.getURL()}`));
     window.webContents.on('did-fail-load', (_e, code, desc, url, isMainFrame) =>
-        console.log(`[DIAG][MAIN] did-fail-load code=${code} desc=${desc} url=${url} mainFrame=${isMainFrame}`));
-    window.webContents.on('dom-ready', () => console.log('[DIAG][MAIN] dom-ready'));
+        diagT(`webContents did-fail-load code=${code} desc=${desc} url=${url} mainFrame=${isMainFrame}`));
+    window.webContents.on('dom-ready', () => diagT('webContents dom-ready'));
     window.webContents.on('render-process-gone', (_e, details) =>
-        console.log('[DIAG][MAIN] render-process-gone', JSON.stringify(details)));
-    window.webContents.on('unresponsive', () => console.log('[DIAG][MAIN] webContents unresponsive'));
+        diagT(`webContents render-process-gone ${JSON.stringify(details)}`));
+    window.webContents.on('unresponsive', () => diagT('webContents unresponsive'));
+    window.webContents.on('responsive', () => diagT('webContents responsive again'));
     window.webContents.on('preload-error', (_e, preloadPath, error) =>
-        console.log('[DIAG][MAIN] preload-error', preloadPath, error?.message ?? error));
-    window.on('ready-to-show', () => console.log('[DIAG][MAIN] ready-to-show'));
+        diagT(`webContents preload-error ${preloadPath} ${error?.message ?? error}`));
+    window.on('ready-to-show', () => diagT('window ready-to-show (first paint)'));
 
     // Limit permissions to our trusted origin only. This shouldn't be required (we don't allow loading
     // 3rd party sites) but it's good practice for defense-in-depth etc. We don't limit permissions
@@ -165,6 +173,7 @@ const createWindow = () => {
         return callback(hasTrustedOrigin(pageUrl));
     });
 
+    diagT('calling loadURL');
     window.loadURL(APP_URL + '?' + querystring.stringify({
         authToken: AUTH_TOKEN,
         desktopVersion: DESKTOP_VERSION
@@ -186,7 +195,7 @@ const createWindow = () => {
 // Use a promise to organize events around 'ready', and ensure they never
 // fire before, as Electron will refuse to do various things if they do.
 const appReady = getDeferred();
-app.on('ready', () => appReady.resolve());
+app.on('ready', () => { diagT('app ready'); appReady.resolve(); });
 
 let logStream: WriteStream | undefined;
 const getLogStream = () => {
@@ -482,7 +491,7 @@ if (!amMainInstance) {
             '--server-port', String(serverPorts.serverPort),
             '--mockttp-port', String(serverPorts.mockttpPort)
         ];
-        console.log('[DIAG][MAIN] spawning server:', serverBinCommand, JSON.stringify(serverArgs)); // [DIAG]
+        diagT(`spawning server: ${serverBinCommand} ${JSON.stringify(serverArgs)}`);
 
         server = spawn(serverBinCommand, serverArgs, {
             windowsHide: true,
@@ -502,6 +511,23 @@ if (!amMainInstance) {
         serverStdout.pipe(getLogStream());
         serverStderr.pipe(getLogStream());
 
+        // [DIAG] Poll the server API port until it accepts a TCP connection, to time exactly when the
+        // server is actually listening (vs. when the UI manages to connect & render). Separates
+        // "server slow to come up" from "UI slow to load/connect/render".
+        const probeStart = Date.now();
+        (function probeServerPort(attempt = 0) {
+            const sock = net.connect({ host: '127.0.0.1', port: serverPorts.serverPort });
+            sock.once('connect', () => {
+                sock.destroy();
+                diagT(`server port ${serverPorts.serverPort} accepting connections (after ${Date.now() - probeStart}ms, ${attempt} retries)`);
+            });
+            sock.once('error', () => {
+                sock.destroy();
+                if (attempt < 600) setTimeout(() => probeServerPort(attempt + 1), 100);
+                else diagT(`server port ${serverPorts.serverPort} never became reachable`);
+            });
+        })();
+
         const startTime = Date.now();
         let seenOutput = false;
         server.stdout!.on('data', (data) => {
@@ -510,6 +536,7 @@ if (!amMainInstance) {
             if (!seenOutput) {
                 seenOutput = true;
                 console.log(`Server took ${Date.now() - startTime}ms to begin startup`);
+                diagT('server first stdout');
             }
             addBreadcrumb({ category: 'server-stdout', message: data.toString('utf8'), level: <any>'info' });
         });
@@ -656,7 +683,7 @@ if (!amMainInstance) {
             ? { serverPort: 45457, mockttpPort: 45456 }
             : await pickServerPorts();
         serverPorts = ports;
-        console.log('[DIAG][MAIN] serverPorts resolved =', JSON.stringify(ports)); // [DIAG]
+        diagT(`serverPorts resolved = ${JSON.stringify(ports)}`);
         portsResolved.resolve(ports);
 
         return startServer();

@@ -38,8 +38,14 @@ test('app launches and loads UI from server', async () => {
     // [DIAG] Generous timeout so diagnostics always get a chance to print before the test ends.
     test.setTimeout(120_000);
 
+    // [DIAG] t0 for the test side, to time launch -> firstWindow -> heading-visible.
+    const tStart = Date.now();
+    const since = () => Date.now() - tStart;
+
     const electronApp = await launchApp();
+    console.log(`[DIAG][test] launchApp returned @ ${since()}ms`);
     const window = await electronApp.firstWindow();
+    console.log(`[DIAG][test] firstWindow @ ${since()}ms`);
 
     // [DIAG] Capture renderer-side signals directly via Playwright. requestfailed is the key one:
     // if the UI can't reach the local server, we'll see failed requests to 127.0.0.1:<serverPort>.
@@ -47,7 +53,26 @@ test('app launches and loads UI from server', async () => {
     window.on('pageerror', (err) => console.log('[DIAG][page pageerror]', err.message));
     window.on('crash', () => console.log('[DIAG][page crash]'));
     window.on('requestfailed', (req) =>
-        console.log('[DIAG][page requestfailed]', req.method(), req.url(), '::', req.failure()?.errorText));
+        console.log(`[DIAG][page requestfailed @ ${since()}ms]`, req.method(), req.url(), '::', req.failure()?.errorText));
+
+    // [DIAG] Time the first request the UI makes to the local server (127.0.0.1 / localhost), and the
+    // first response from it. The gap from "page loaded" to "first local request" is UI boot time;
+    // the gap from there to the heading is connect+render time.
+    let loggedFirstLocalReq = false;
+    let loggedFirstLocalRes = false;
+    const isLocal = (url: string) => url.includes('127.0.0.1') || url.includes('localhost');
+    window.on('request', (req) => {
+        if (isLocal(req.url()) && !loggedFirstLocalReq) {
+            loggedFirstLocalReq = true;
+            console.log(`[DIAG][test] first local-server request @ ${since()}ms: ${req.method()} ${req.url()}`);
+        }
+    });
+    window.on('response', (res) => {
+        if (isLocal(res.url()) && !loggedFirstLocalRes) {
+            loggedFirstLocalRes = true;
+            console.log(`[DIAG][test] first local-server response @ ${since()}ms: ${res.status()} ${res.url()}`);
+        }
+    });
 
     // [DIAG] Wait for the connected-UI heading, but never throw here - we want to dump diagnostics
     // regardless of pass/fail so the CI log explains what happened.
@@ -56,8 +81,9 @@ test('app launches and loads UI from server', async () => {
         await window.locator('h1:has-text("Intercept HTTP")')
             .waitFor({ state: 'visible', timeout: 60_000 });
         headingVisible = true;
+        console.log(`[DIAG][test] heading visible @ ${since()}ms`);
     } catch (e) {
-        console.log('[DIAG][test] heading never became visible:', (e as Error).message);
+        console.log(`[DIAG][test] heading never became visible (@ ${since()}ms):`, (e as Error).message);
     }
 
     // [DIAG] Dump what the UI actually sees from the desktop API + page state. This directly tests
@@ -65,6 +91,30 @@ test('app launches and loads UI from server', async () => {
     try {
         const state = await window.evaluate(() => {
             const api = (window as any).desktopApi;
+
+            // Navigation timing: when the main document loaded (network + parse), relative to nav start.
+            const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+            const navTiming = nav ? {
+                responseEnd: Math.round(nav.responseEnd),
+                domContentLoaded: Math.round(nav.domContentLoadedEventEnd),
+                domComplete: Math.round(nav.domComplete),
+                loadEventEnd: Math.round(nav.loadEventEnd)
+            } : null;
+
+            // Resource timing for requests to the local server (server connect cost) and the heaviest
+            // resources overall (to spot a slow CDN bundle fetch).
+            const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
+            const localResources = resources
+                .filter(r => r.name.includes('127.0.0.1') || r.name.includes('localhost'))
+                .map(r => ({ name: r.name, start: Math.round(r.startTime), dur: Math.round(r.duration) }));
+            const slowest = resources
+                .slice()
+                .sort((a, b) => b.duration - a.duration)
+                .slice(0, 8)
+                .map(r => ({ name: r.name.slice(0, 120), start: Math.round(r.startTime), dur: Math.round(r.duration) }));
+
+            const sw = (navigator as any).serviceWorker;
+
             return {
                 href: window.location.href,
                 title: document.title,
@@ -73,6 +123,11 @@ test('app launches and loads UI from server', async () => {
                 authTokenPresent: !!api?.getServerAuthToken?.(),
                 serverPort: api?.getServerPort?.(),
                 mockttpPort: api?.getMockttpPort?.(),
+                serviceWorkerControlled: !!sw?.controller,
+                navTiming,
+                localResources,
+                slowestResources: slowest,
+                resourceCount: resources.length,
                 bodyTextSnippet: (document.body?.innerText || '').slice(0, 500),
                 htmlLength: document.documentElement?.outerHTML?.length ?? 0
             };
