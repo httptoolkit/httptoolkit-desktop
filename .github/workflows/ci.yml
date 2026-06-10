@@ -96,25 +96,28 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USE_SYSTEM_FPM: ${{ matrix.platform == 'linux' && matrix.arch == 'arm64' }}
 
-      # [DIAG] The 14-20s slowdown is a once-per-VM *first-launch* cost (prior runs: only launch #1
-      # was slow, #2+ were ~0.7s) and it survives drop_caches/font/userdata clearing - so it's NOT
-      # disk/fontconfig/first-run (the breakdown proved those are <1s). This runs the GENUINE first
-      # app launch (electron-builder above doesn't launch the app) with a vmstat sampler, so when a
-      # re-run lands on a slow VM we can see *why*: st=CPU steal/contention, wa=iowait, or id=idle
-      # (idle-but-slow => single-threaded blocking inside Chromium, e.g. GPU-init retry).
-      # RE-RUN THE JOB until one lands on a slow VM. Also doubles as a warm-up for the gating test.
+      # [DIAG] The slow first launch is I/O-bound, not CPU: a prior run showed st(steal)=0 but
+      # wa(iowait)=24-50% with procs blocked on I/O. Open question: is that iowait the *build's*
+      # dirty pages flushing during the launch (fix = sync after build) or cold reads of the app's
+      # own ~700MB of files (fix = warm-up)? Here we `sync` + settle FIRST to flush the build's
+      # writes, THEN run the genuine first launch (still cold reads, but no build-flush contention).
+      # Compare its app-ready uptime + wa against the prior run's *immediate* launch (wa 24-50%,
+      # ~3-7s): if this is now fast with LOW wa => build-flush was the cause; if still slow/high-wa
+      # => it's the cold reads themselves. RE-RUN to sample variance / try to catch a 14-20s case.
       - name: "[DIAG] instrumented first launch + vmstat sampling"
         if: ${{ always() && matrix.platform == 'linux' }}
         continue-on-error: true
         run: |
           set +e
           echo "nproc=$(nproc)  loadavg=$(cat /proc/loadavg)  uptime=$(cat /proc/uptime)"
-          ( vmstat 1 90 > /tmp/vmstat.log 2>&1 ) &
-          VM=$!
-          echo "===== GENUINE FIRST LAUNCH (watch the 'app ready' uptime=Xs) ====="
+          echo ">>> sync + settle to flush the build's dirty pages BEFORE the launch <<<"
+          sync; sleep 3; sync
+          echo "post-sync loadavg=$(cat /proc/loadavg)"
+          ( vmstat 1 90 > /tmp/vmstat.log 2>&1 ) & VM=$!
+          echo "===== GENUINE FIRST LAUNCH, post-sync (watch 'app ready' uptime=Xs) ====="
           xvfb-run --auto-servernum npx playwright test 2>&1 | grep -E "\[DIAG\]\[T\+|\[DIAG\]\[test" || true
           sleep 1; kill "$VM" 2>/dev/null
-          echo "===== vmstat through the launch window (cols: r b ... wa st; st=steal wa=iowait id=idle) ====="
+          echo "===== vmstat through launch (cols: r b ... bi bo ... wa st; st=steal wa=iowait) ====="
           cat /tmp/vmstat.log
         shell: bash
 
