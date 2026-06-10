@@ -96,25 +96,27 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USE_SYSTEM_FPM: ${{ matrix.platform == 'linux' && matrix.arch == 'arm64' }}
 
-      # [DIAG] The slow first launch is I/O-bound, not CPU: a prior run showed st(steal)=0 but
-      # wa(iowait)=24-50% with procs blocked on I/O. Open question: is that iowait the *build's*
-      # dirty pages flushing during the launch (fix = sync after build) or cold reads of the app's
-      # own ~700MB of files (fix = warm-up)? Here we `sync` + settle FIRST to flush the build's
-      # writes, THEN run the genuine first launch (still cold reads, but no build-flush contention).
-      # Compare its app-ready uptime + wa against the prior run's *immediate* launch (wa 24-50%,
-      # ~3-7s): if this is now fast with LOW wa => build-flush was the cause; if still slow/high-wa
-      # => it's the cold reads themselves. RE-RUN to sample variance / try to catch a 14-20s case.
-      - name: "[DIAG] instrumented first launch + vmstat sampling"
+      # [DIAG] CONFIRMED root cause: the slow first launch is cold disk reads of the ~700MB working
+      # set on a slow/throttled runner disk (a captured 19s launch showed st=0, one proc blocked,
+      # wa=25%, reads ~2-4 MB/s vs 620 MB/s warm). Test the proposed fix: warm the PAGE CACHE by
+      # reading the files (NOT launching the app), then do the GENUINE first Electron launch. If the
+      # launch is now fast with low wa, file-warming removes the I/O bottleneck while keeping the test
+      # a real first launch (Chromium first-run, GPU init, user-data-dir creation still measured).
+      - name: "[DIAG] file-warm page cache, then genuine first launch"
         if: ${{ always() && matrix.platform == 'linux' }}
         continue-on-error: true
         run: |
           set +e
-          echo "nproc=$(nproc)  loadavg=$(cat /proc/loadavg)  uptime=$(cat /proc/uptime)"
-          echo ">>> sync + settle to flush the build's dirty pages BEFORE the launch <<<"
-          sync; sleep 3; sync
-          echo "post-sync loadavg=$(cat /proc/loadavg)"
+          now_ms() { date +%s%3N; }
+          echo "nproc=$(nproc)  loadavg=$(cat /proc/loadavg)"
+          echo ">>> pre-reading the app working set into page cache (NOT launching the app) <<<"
+          s=$(now_ms)
+          for d in node_modules httptoolkit-server build; do
+            [ -e "$d" ] && find "$d" -type f -print0 2>/dev/null | xargs -0 cat > /dev/null 2>&1
+          done
+          e=$(now_ms); echo ">>> warm-up read took $((e - s)) ms (this absorbs the slow cold reads, untimed) <<<"
           ( vmstat 1 90 > /tmp/vmstat.log 2>&1 ) & VM=$!
-          echo "===== GENUINE FIRST LAUNCH, post-sync (watch 'app ready' uptime=Xs) ====="
+          echo "===== GENUINE FIRST LAUNCH, cache pre-warmed via reads (watch 'app ready' uptime=Xs; wa should be low) ====="
           xvfb-run --auto-servernum npx playwright test 2>&1 | grep -E "\[DIAG\]\[T\+|\[DIAG\]\[test" || true
           sleep 1; kill "$VM" 2>/dev/null
           echo "===== vmstat through launch (cols: r b ... bi bo ... wa st; st=steal wa=iowait) ====="
