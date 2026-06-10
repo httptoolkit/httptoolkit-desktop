@@ -96,6 +96,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USE_SYSTEM_FPM: ${{ matrix.platform == 'linux' && matrix.arch == 'arm64' }}
 
+      # Attempt to fix flaky tests due to CI disk perf by warming the disk up
+      - name: Warm page cache before smoke tests
+        if: runner.os == 'Linux'
+        run: |
+          for d in node_modules httptoolkit-server build; do
+            [ -e "$d" ] && find "$d" -type f -print0 2>/dev/null | xargs -0 cat > /dev/null 2>&1 || true
+          done
+        shell: bash
+
       - name: Run smoke tests
         run: |
           # We manually start ADB, so the tests don't (because if they do, they fail
