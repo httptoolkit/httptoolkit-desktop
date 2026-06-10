@@ -96,6 +96,28 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USE_SYSTEM_FPM: ${{ matrix.platform == 'linux' && matrix.arch == 'arm64' }}
 
+      # [DIAG] The 14-20s slowdown is a once-per-VM *first-launch* cost (prior runs: only launch #1
+      # was slow, #2+ were ~0.7s) and it survives drop_caches/font/userdata clearing - so it's NOT
+      # disk/fontconfig/first-run (the breakdown proved those are <1s). This runs the GENUINE first
+      # app launch (electron-builder above doesn't launch the app) with a vmstat sampler, so when a
+      # re-run lands on a slow VM we can see *why*: st=CPU steal/contention, wa=iowait, or id=idle
+      # (idle-but-slow => single-threaded blocking inside Chromium, e.g. GPU-init retry).
+      # RE-RUN THE JOB until one lands on a slow VM. Also doubles as a warm-up for the gating test.
+      - name: "[DIAG] instrumented first launch + vmstat sampling"
+        if: ${{ always() && matrix.platform == 'linux' }}
+        continue-on-error: true
+        run: |
+          set +e
+          echo "nproc=$(nproc)  loadavg=$(cat /proc/loadavg)  uptime=$(cat /proc/uptime)"
+          ( vmstat 1 90 > /tmp/vmstat.log 2>&1 ) &
+          VM=$!
+          echo "===== GENUINE FIRST LAUNCH (watch the 'app ready' uptime=Xs) ====="
+          xvfb-run --auto-servernum npx playwright test 2>&1 | grep -E "\[DIAG\]\[T\+|\[DIAG\]\[test" || true
+          sleep 1; kill "$VM" 2>/dev/null
+          echo "===== vmstat through the launch window (cols: r b ... wa st; st=steal wa=iowait id=idle) ====="
+          cat /tmp/vmstat.log
+        shell: bash
+
       - name: Run smoke tests
         run: |
           # We manually start ADB, so the tests don't (because if they do, they fail
@@ -107,60 +129,6 @@ jobs:
           else
             npm test
           fi
-        shell: bash
-
-      # [DIAG] Cold-start breakdown: figure out *where* the slow first-launch time goes (Electron
-      # app-ready is ~14-20s cold vs ~0.7s warm). We deterministically reconstruct cold state with
-      # drop_caches + cache resets and isolate each suspected cost. Runs on both linux arches so we
-      # can also compare arm64 vs x64. Diagnostic only: always runs, never fails the build.
-      # Read the "[DIAG][T+... uptime=Xs] app ready" line emitted by each launch to compare conditions.
-      - name: "[DIAG] cold-start breakdown (fontconfig vs cold-reads vs first-run)"
-        if: ${{ always() && matrix.platform == 'linux' }}
-        continue-on-error: true
-        run: |
-          set +e
-          ELECTRON_DIR="$PWD/node_modules/electron/dist"
-          USERDATA="$HOME/.config/HTTP Toolkit"
-
-          now_ms() { date +%s%3N; }
-          timed() { local s; s=$(now_ms); "$@"; local e; e=$(now_ms); echo "  -> $((e - s)) ms wall"; }
-          drop_caches() { sync; sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches' 2>/dev/null && echo "[page cache dropped]" || echo "[drop_caches FAILED - no sudo?]"; }
-          clear_fonts() { rm -rf "$HOME/.cache/fontconfig" 2>/dev/null; sudo rm -rf /var/cache/fontconfig/* 2>/dev/null; }
-          clear_userdata() { rm -rf "$USERDATA" 2>/dev/null; }
-          warm_electron() { find "$ELECTRON_DIR" -type f -print0 2>/dev/null | xargs -0 cat > /dev/null 2>&1; }
-          # Capture the full electron timeline ([DIAG][T+...]) + test markers ([DIAG][test...]),
-          # but drop the noisy renderer/CSP console spam. In cold runs 'app ready' is emitted before
-          # Playwright attaches its stdout handler, so grabbing the whole T+ timeline is more reliable.
-          launch() { xvfb-run --auto-servernum npx playwright test 2>&1 | grep -E "\[DIAG\]\[T\+|\[DIAG\]\[test" || true; }
-
-          echo "##################### HARDWARE / FILESYSTEM #####################"
-          uname -a; echo "nproc: $(nproc)"; free -h
-          grep -m1 -iE 'model name|CPU implementer|Features' /proc/cpuinfo
-          echo "--- workspace mount ---"; findmnt -T "$PWD" 2>/dev/null || df -h "$PWD"
-          echo "--- sizes ---"; du -sh "$ELECTRON_DIR" 2>/dev/null; du -sh "$PWD/node_modules" 2>/dev/null
-
-          echo "##################### RAW DISK READ of electron/dist #####################"
-          drop_caches
-          echo "cold read of electron/dist:"; timed warm_electron
-          echo "warm read of electron/dist:"; timed warm_electron
-
-          echo "##################### FONTCONFIG BUILD COST #####################"
-          clear_fonts
-          echo "fc-cache -f (cold build):"; timed fc-cache -f
-          echo "fc-cache -f (already built):"; timed fc-cache -f
-
-          echo "##################### ELECTRON app-ready BREAKDOWN #####################"
-          echo "Compare the 'uptime=Xs' at app-ready across conditions:"
-          echo "===== A: FULLY COLD (fonts cleared, userdata cleared, page cache dropped) ====="
-          clear_fonts; clear_userdata; drop_caches; launch
-          echo "===== B: fontconfig PRE-BUILT, else cold  (A minus B = fontconfig BUILD cost) ====="
-          clear_fonts; fc-cache -f >/dev/null 2>&1; clear_userdata; drop_caches; launch
-          echo "===== C: electron PRE-READ (page warm), fonts cleared  (A minus C = COLD-READ cost) ====="
-          clear_fonts; clear_userdata; warm_electron; launch
-          echo "===== E: fonts+page WARM, userdata cleared  (E minus D = Chromium FIRST-RUN cost) ====="
-          clear_userdata; warm_electron; launch
-          echo "===== D: FULLY WARM (everything cached) ====="
-          launch
         shell: bash
 
       - uses: actions/upload-artifact@v6
