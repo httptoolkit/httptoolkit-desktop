@@ -56,10 +56,13 @@ let windows: Electron.BrowserWindow[] = [];
 
 let server: ChildProcess | null = null;
 
-// [DIAG] Phase timing: elapsed ms since the main process started, to find where startup time goes
-// on the slow arm64 runs. Each milestone logs to stdout (captured by the smoke test -> CI log).
+// [DIAG] Phase timing: elapsed ms since this module started, plus process.uptime() which counts
+// from the Electron binary launch (so the two together split "binary boot + imports" from later
+// work). Logs to stdout (captured by the smoke test -> CI log) to find where startup time goes.
 const T_START = Date.now();
-const diagT = (label: string) => console.log(`[DIAG][T+${Date.now() - T_START}ms] ${label}`);
+const diagT = (label: string) =>
+    console.log(`[DIAG][T+${Date.now() - T_START}ms uptime=${process.uptime().toFixed(1)}s] ${label}`);
+diagT('index.ts module top-level reached');
 
 interface ServerPorts {
     serverPort: number;
@@ -221,12 +224,15 @@ const portsResolved = getDeferred<ServerPorts>();
 const openNewWindow = () => Promise.all([appReady.promise, portsResolved.promise])
     .then(() => createWindow());
 
+diagT('before requestSingleInstanceLock');
 const amMainInstance = app.requestSingleInstanceLock();
+diagT('after requestSingleInstanceLock');
 if (!amMainInstance) {
     console.log('Not the main instance - quitting');
     app.quit();
 } else {
     writeLog(`--- Launching HTTP Toolkit desktop v${DESKTOP_VERSION} at ${new Date().toISOString()} ---`);
+    diagT('main-instance synchronous setup running (everything below waits on app ready)');
 
     // [DIAG] Main-process startup facts. process.argv confirms whether --no-sandbox was passed
     // (the smoke test only adds it on arm64), which is the key arch difference under investigation.

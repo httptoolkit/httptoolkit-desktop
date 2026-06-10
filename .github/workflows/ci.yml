@@ -109,6 +109,24 @@ jobs:
           fi
         shell: bash
 
+      # [DIAG] arm64-only experiment to characterise the slow/variable Electron app-ready time and
+      # whether disabling the (failing) GPU init cuts & stabilises it. Runs regardless of the gating
+      # smoke test above (if: always()) and never fails the build (continue-on-error). Each iteration
+      # emits the full [DIAG][T+...] timeline incl. app-ready uptime. Remove with the rest of the diags.
+      - name: "[DIAG] arm64 startup-timing A/B (baseline vs --disable-gpu)"
+        if: ${{ always() && matrix.platform == 'linux' && matrix.arch == 'arm64' }}
+        continue-on-error: true
+        run: |
+          for i in 1 2 3; do
+            echo "===================== BASELINE run $i ====================="
+            xvfb-run --auto-servernum npm test || true
+          done
+          for i in 1 2 3; do
+            echo "================== DISABLE_GPU run $i ====================="
+            HTK_DIAG_DISABLE_GPU=true xvfb-run --auto-servernum npm test || true
+          done
+        shell: bash
+
       - uses: actions/upload-artifact@v6
         if: matrix.platform == 'linux'
         with:

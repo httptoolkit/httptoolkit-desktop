@@ -7,16 +7,23 @@ async function launchApp(extraArgs: string[] = [], extraEnv: Record<string, stri
     // "Experiment A": make x64 CI behave like arm64 (no sandbox) and see if it then fails too.
     const useNoSandbox = process.env.HTK_DIAG_NO_SANDBOX === 'true' ||
         !!(process.env.CI && process.platform === 'linux' && process.arch === 'arm64');
-    console.log(`[DIAG][test] launch: platform=${process.platform} arch=${process.arch} useNoSandbox=${useNoSandbox}`);
+    // [DIAG] Experiment: HTK_DIAG_DISABLE_GPU=true skips GPU init (which fails & falls back to software
+    // on the arm64 runner) - to A/B whether it cuts the ~14s-to-app-ready + render time.
+    const disableGpu = process.env.HTK_DIAG_DISABLE_GPU === 'true';
+    console.log(`[DIAG][test] launch: platform=${process.platform} arch=${process.arch} useNoSandbox=${useNoSandbox} disableGpu=${disableGpu}`);
 
     const app = await electron.launch({
         cwd: path.join(import.meta.dirname, '..'),
         args: [
             '.',
             ...extraArgs,
-            ...(useNoSandbox ? ['--no-sandbox', '--disable-setuid-sandbox'] : [])
+            ...(useNoSandbox ? ['--no-sandbox', '--disable-setuid-sandbox'] : []),
+            ...(disableGpu ? ['--disable-gpu', '--disable-gpu-compositing'] : [])
         ],
-        timeout: 20000,
+        // [DIAG] Raised from 20s: on slow arm64 runs app 'ready' can exceed 20s, so electron.launch
+        // was aborting *before* our stdout handler attached - hiding the real app-ready time. With a
+        // larger budget, slow-but-progressing launches complete and emit the full [DIAG][T+...] timeline.
+        timeout: 60000,
         env: {
             ...process.env,
             'HTTPTOOLKIT_SERVER_DISABLE_AUTOUPDATE': '1',
