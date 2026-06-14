@@ -177,7 +177,7 @@
     "postject": "1.0.0-alpha.6",
     "targz": "^1.0.1",
     "tsc-watch": "^4.2.9",
-    "tsx": "^4.16.2",
+    "tsx": "^4.22.4",
     "typescript": "~5.9"
   },
   "engines": {
