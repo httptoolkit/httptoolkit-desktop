@@ -172,7 +172,7 @@
     "@types/yargs": "^15.0.3",
     "cross-env": "^7.0.3",
     "electron": "^39.2.7",
-    "electron-builder": "^26.9.1",
+    "electron-builder": "^26.15.3",
     "lodash": "^4.18.1",
     "postject": "1.0.0-alpha.6",
     "targz": "^1.0.1",
