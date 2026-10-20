@@ -8,7 +8,7 @@
   "type": "module",
   "main": "build/index.js",
   "scripts": {
-    "postinstall": "electron-builder install-app-deps",
+    "postinstall": "install-electron && electron-builder install-app-deps",
     "server:setup": "tsx ./build-setup/setup-server.ts",
     "build": "npm run build:src && npm run build:electron",
     "build:src": "tsc",
