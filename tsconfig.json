@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
         "noEmit": true,
+        "isolatedModules": true,
         "noImplicitAny": true,
         "noImplicitReturns": true,
         "strictNullChecks": true,
