@@ -10,8 +10,8 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 import * as querystring from 'querystring';
 import { URL } from 'url';
+import { parseArgs } from 'util';
 import { app, BrowserWindow, shell, Menu, dialog, session, ipcMain } from 'electron';
-import yargs from 'yargs';
 import * as semver from 'semver';
 const rmRF = (p: string) => fs.rm(p, { recursive: true, force: true });
 
@@ -198,10 +198,18 @@ if (!amMainInstance) {
 } else {
     writeLog(`--- Launching HTTP Toolkit desktop v${DESKTOP_VERSION} at ${new Date().toISOString()} ---`);
 
-    yargs
-        .version(DESKTOP_VERSION)
-        .help()
-        .argv;
+    const { values: cliOptions } = parseArgs({
+        args: process.argv.slice(1),
+        options: { version: { type: 'boolean' } },
+        // Electron & Chromium flags also appear here, so we accept anything
+        strict: false,
+        allowPositionals: true
+    });
+
+    if (cliOptions.version) {
+        console.log(DESKTOP_VERSION);
+        process.exit(0);
+    }
 
     let serverKilled = false;
     app.on('will-quit', async (event) => {
