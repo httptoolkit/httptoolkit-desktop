@@ -1,9 +1,5 @@
-import * as electron from 'electron';
-const {
-    contextBridge,
-    ipcRenderer: { invoke: ipcInvoke },
-    webUtils
-} = electron;
+import { contextBridge, ipcRenderer, webUtils } from 'electron';
+const { invoke: ipcInvoke } = ipcRenderer;
 
 import type { ContextMenuDefinition } from './context-menu.ts';
 
