@@ -17,11 +17,10 @@ const rmRF = (p: string) => fs.rm(p, { recursive: true, force: true });
 
 import windowStateKeeper from 'electron-window-state';
 import { getSystemProxy } from 'os-proxy-config';
-import registerContextMenu from 'electron-context-menu';
 import { getDeferred } from '@httptoolkit/util';
 
-import { getMenu, shouldAutoHideMenu } from './menu.ts';
-import { ContextMenuDefinition, openContextMenu } from './context-menu.ts';
+import { getMenu, shouldAutoHideMenu, loadMenuSettings } from './menu.ts';
+import { ContextMenuDefinition, openContextMenu, showDefaultContextMenu } from './context-menu.ts';
 import getPort, { portNumbers } from 'get-port';
 
 import { stopServer } from './stop-server.ts';
@@ -131,6 +130,10 @@ const createWindow = () => {
     windows.push(window);
     windowState.manage(window);
 
+    window.webContents.on('context-menu', (_event, props) => {
+        showDefaultContextMenu(window.webContents, props);
+    });
+
     // Stream renderer console output directly into our log file:
     window.webContents.on('console-message', ({ level, message }) => {
         writeLog(`${level}: ${message}`);
@@ -188,7 +191,9 @@ const writeLog = (message: string) => {
 // initialises it. createWindow reads serverPorts to seed additionalArguments.
 const portsResolved = getDeferred<ServerPorts>();
 
-const openNewWindow = () => Promise.all([appReady.promise, portsResolved.promise])
+const menuSettingsLoaded = loadMenuSettings();
+
+const openNewWindow = () => Promise.all([appReady.promise, portsResolved.promise, menuSettingsLoaded])
     .then(() => createWindow());
 
 const amMainInstance = app.requestSingleInstanceLock();
@@ -678,7 +683,7 @@ if (!amMainInstance) {
             });
     }
 
-    Promise.all([appReady.promise, portsResolved.promise, uiCacheReady]).then(() => {
+    Promise.all([appReady.promise, portsResolved.promise, uiCacheReady, menuSettingsLoaded]).then(() => {
         Menu.setApplicationMenu(getMenu(windows, openNewWindow));
         createWindow();
     });
@@ -749,12 +754,6 @@ ipcMain.handle('select-save-file-path', ipcHandler(async () => {
     if (!result || result.canceled) return undefined;
     else return result.filePath;
 }));
-
-// Enable the default context menu
-registerContextMenu({
-    showSaveImageAs: true,
-    showSelectAll: false // Weird (does web-style select-all-text), skip it
-});
 
 // Enable custom context menus, for special cases where the UI wants to define the options available
 ipcMain.handle('open-context-menu', ipcHandler((options: ContextMenuDefinition) =>

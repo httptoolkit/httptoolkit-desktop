@@ -88,3 +88,102 @@ function buildContextSubmenu(option: ContextMenuSubmenu, callback: ContextMenuCa
         submenu
     });
 }
+
+const MAX_LOOKUP_LABEL_LENGTH = 25;
+
+// The default context menu, shown wherever the UI doesn't provide its own
+export function showDefaultContextMenu(contents: Electron.WebContents, props: Electron.ContextMenuParams) {
+    const { editFlags, isEditable, misspelledWord, linkURL, mediaType } = props;
+    const selection = props.selectionText.trim();
+    const hasText = selection.length > 0;
+    const isMisspelled = hasText && !!misspelledWord;
+
+    const sections: Electron.MenuItemConstructorOptions[][] = [];
+
+    if (isMisspelled && isEditable) {
+        sections.push(
+            props.dictionarySuggestions.length > 0
+                ? props.dictionarySuggestions.map((suggestion) => ({
+                    label: suggestion,
+                    click: () => contents.replaceMisspelling(suggestion)
+                }))
+                : [{ label: 'No Guesses Found', enabled: false }],
+            [{
+                label: '&Learn Spelling',
+                click: () => contents.session.addWordToSpellCheckerDictionary(misspelledWord)
+            }]
+        );
+    }
+
+    if (hasText) {
+        const lookupItems: Electron.MenuItemConstructorOptions[] = [];
+        if (process.platform === 'darwin' && !linkURL) {
+            const truncated = selection.length > MAX_LOOKUP_LABEL_LENGTH
+                ? selection.slice(0, MAX_LOOKUP_LABEL_LENGTH - 1) + '…'
+                : selection;
+            lookupItems.push({
+                label: `Look Up “${truncated.replace(/&/g, '&&')}”`,
+                click: () => contents.showDefinitionForSelection()
+            });
+        }
+        lookupItems.push({
+            label: '&Search with Google',
+            click: () => {
+                const url = new URL('https://www.google.com/search');
+                url.searchParams.set('q', props.selectionText);
+                Electron.shell.openExternal(url.toString());
+            }
+        });
+        sections.push(lookupItems);
+    }
+
+    const editItems: Electron.MenuItemConstructorOptions[] = [];
+    if (isEditable) {
+        editItems.push({ label: 'Cu&t', enabled: editFlags.canCut && hasText, click: () => contents.cut() });
+    }
+    if (isEditable || hasText) {
+        editItems.push({ label: '&Copy', enabled: editFlags.canCopy && hasText, click: () => contents.copy() });
+    }
+    if (isEditable) {
+        editItems.push({ label: '&Paste', enabled: editFlags.canPaste, click: () => contents.paste() });
+    }
+    sections.push(editItems);
+
+    if (mediaType === 'image') {
+        sections.push([
+            // With no will-download handler, Electron prompts with a save dialog:
+            { label: 'Sa&ve Image As…', click: () => contents.downloadURL(props.srcURL) },
+            { label: 'Cop&y Image', click: () => contents.copyImageAt(props.x, props.y) }
+        ]);
+    }
+
+    if (linkURL && mediaType === 'none') {
+        sections.push([{
+            label: 'Copy Lin&k',
+            click: () => Electron.clipboard.write({ bookmark: props.linkText, text: linkURL })
+        }]);
+    }
+
+    if (!Electron.app.isPackaged) {
+        sections.push([{
+            label: 'I&nspect Element',
+            click: () => {
+                contents.inspectElement(props.x, props.y);
+                if (contents.isDevToolsOpened()) contents.devToolsWebContents?.focus();
+            }
+        }]);
+    }
+
+    const template = sections
+        .filter((section) => section.length > 0)
+        .flatMap((section, i) => i === 0
+            ? section
+            : [{ type: 'separator' } as const, ...section]
+        );
+
+    if (template.length > 0) {
+        Electron.Menu.buildFromTemplate(template).popup({
+            window: Electron.BrowserWindow.fromWebContents(contents) ?? undefined
+        });
+    }
+}

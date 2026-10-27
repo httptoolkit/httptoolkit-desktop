@@ -1,11 +1,37 @@
 import * as path from 'path';
+import { promises as fs } from 'fs';
 import { app, Menu, MenuItemConstructorOptions, shell } from 'electron';
-import ElectronStore from 'electron-store';
 
-const store = new ElectronStore();
+import { logError } from './errors.ts';
+
+// Same file & format as electron-store used previously, so existing settings carry over
+const SETTINGS_PATH = path.join(app.getPath('userData'), 'config.json');
 const AUTO_HIDE_SETTING_KEY = "autoHideMenuBar";
 
-export const shouldAutoHideMenu = () => !!store.get(AUTO_HIDE_SETTING_KEY);
+let settings: Record<string, unknown> = {};
+
+export async function loadMenuSettings() {
+    try {
+        const parsed: unknown = JSON.parse(await fs.readFile(SETTINGS_PATH, 'utf8'));
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            settings = parsed as Record<string, unknown>;
+        }
+    } catch (e) {
+        if (e.code !== 'ENOENT') logError(e);
+    }
+}
+
+let settingsWrite = Promise.resolve();
+function saveSettings() {
+    const data = JSON.stringify(settings, undefined, '\t');
+    settingsWrite = settingsWrite.then(async () => {
+        const tmpPath = `${SETTINGS_PATH}.${process.pid}.tmp`;
+        await fs.writeFile(tmpPath, data, 'utf8');
+        await fs.rename(tmpPath, SETTINGS_PATH);
+    }).catch(logError);
+}
+
+export const shouldAutoHideMenu = () => !!settings[AUTO_HIDE_SETTING_KEY];
 
 type MenuKey =
     | 'mac'
@@ -171,7 +197,8 @@ export const getMenu = (
                     window.setAutoHideMenuBar(shouldAutoHide);
                     window.setMenuBarVisibility(!shouldAutoHide);
                 });
-                store.set({ [AUTO_HIDE_SETTING_KEY]: shouldAutoHide });
+                settings[AUTO_HIDE_SETTING_KEY] = shouldAutoHide;
+                saveSettings();
             }
         })
     }
