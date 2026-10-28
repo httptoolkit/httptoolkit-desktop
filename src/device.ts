@@ -117,8 +117,8 @@ async function getRealArch() {
                 }
 
             case 'linux':
-                const { stdout: cpuInfo } = await execAsync('cat /proc/cpuinfo')
-                    .catch(() => ({ stdout: 'unknown' })); // Weird, but it does happen
+                const cpuInfo = await fs.readFile('/proc/cpuinfo', 'utf8')
+                    .catch(() => 'unknown'); // Weird, but it does happen
 
                 const lcCpuInfo = cpuInfo.toLowerCase();
                 if (lcCpuInfo.includes('aarch64') || lcCpuInfo.includes('arm64')) {
