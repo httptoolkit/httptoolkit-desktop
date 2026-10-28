@@ -763,7 +763,9 @@ ipcMain.handle('open-context-menu', ipcHandler((options: ContextMenuDefinition) 
     openContextMenu(options)
 ));
 
-ipcMain.handle('get-device-info', ipcHandler(() => getDeviceDetails()));
+// Collected eagerly, as the preload waits for this (briefly) during UI startup
+const deviceDetails = getDeviceDetails();
+ipcMain.handle('get-device-info', ipcHandler(() => deviceDetails));
 
 ipcMain.handle('set-component-versions', ipcHandler((versions: Record<string, string>) => {
     Menu.setApplicationMenu(getMenu(windows, openNewWindow, versions));
