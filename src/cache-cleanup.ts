@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import * as path from 'path';
-import * as semver from 'semver';
+import semverGt from 'semver/functions/gt.js';
 import type { Session } from 'electron';
 
 // The UI is cached (service worker) and should stay roughly in sync with the bundled server version, to
@@ -74,7 +74,7 @@ export const shouldClearStaleUICache = async (options: {
 
         // With a record we compare versions and use its timestamp. If it doesn't exist then it must be
         // an upgrade (pre-v1.27 install), and we use the window-state mtime for timing (close enough).
-        const isUpgrade = previousRunInfo ? semver.gt(currentVersion, previousRunInfo.version) : true;
+        const isUpgrade = previousRunInfo ? semverGt(currentVersion, previousRunInfo.version) : true;
         const lastUsed = previousRunInfo ? previousRunInfo.timestamp : await readWindowStateMtime(userDataPath);
 
         if (lastUsed === null || !isUpgrade) return false;

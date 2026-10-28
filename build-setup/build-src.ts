@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import { spawn } from 'child_process';
 import { createRequire } from 'module';
 import * as esbuild from 'esbuild';
+import semverValid from 'semver/functions/valid.js';
 
 const rootDir = path.join(import.meta.dirname, '..');
 const srcDir = path.join(rootDir, 'src');
@@ -12,7 +13,15 @@ const buildDir = path.join(rootDir, 'build');
 // can't be bundled, so they stay external and load from node_modules at runtime.
 const external = ['electron', 'registry-js'];
 
+async function checkServerVersion() {
+    const packageJson = JSON.parse(await fs.readFile(path.join(rootDir, 'package.json'), 'utf8'));
+    if (!semverValid(packageJson.config['httptoolkit-server-version'])) {
+        throw new Error("Package.json must specify an exact server version");
+    }
+}
+
 async function buildSrc() {
+    await checkServerVersion();
     await fs.rm(buildDir, { recursive: true, force: true });
 
     await Promise.all([

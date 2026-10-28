@@ -8,11 +8,11 @@ import * as os from 'os';
 import { promises as fs, createWriteStream, WriteStream } from 'fs'
 import * as path from 'path';
 import * as crypto from 'crypto';
-import * as querystring from 'querystring';
 import { URL } from 'url';
 import { parseArgs } from 'util';
 import { app, BrowserWindow, shell, Menu, dialog, session, ipcMain } from 'electron';
-import * as semver from 'semver';
+import semverGt from 'semver/functions/gt.js';
+import semverValid from 'semver/functions/valid.js';
 const rmRF = (p: string) => fs.rm(p, { recursive: true, force: true });
 
 import windowStateKeeper from 'electron-window-state';
@@ -37,9 +37,6 @@ const hasTrustedOrigin = (url: URL) => url.origin === APP_URL;
 const AUTH_TOKEN = crypto.randomBytes(20).toString('base64url');
 const DESKTOP_VERSION = packageJson.version;
 const BUNDLED_SERVER_VERSION = packageJson.config['httptoolkit-server-version'];
-if (!semver.parse(BUNDLED_SERVER_VERSION)) {
-    throw new Error("Package.json must specify an exact server version");
-}
 
 const APP_PATH = app.getAppPath();
 const RESOURCES_PATH = APP_PATH.endsWith('app.asar')
@@ -147,7 +144,7 @@ const createWindow = () => {
         return callback(hasTrustedOrigin(pageUrl));
     });
 
-    window.loadURL(APP_URL + '?' + querystring.stringify({
+    window.loadURL(APP_URL + '?' + new URLSearchParams({
         authToken: AUTH_TOKEN,
         desktopVersion: DESKTOP_VERSION
     }));
@@ -410,7 +407,7 @@ if (!amMainInstance) {
             });
 
         if (serverPaths.some((filename) =>
-            !semver.valid(filename.replace(/\.partial\.\d+$/, '')) &&
+            !semverValid(filename.replace(/\.partial\.\d+$/, '')) &&
             filename !== 'bin' &&
             filename !== 'current' &&
             filename !== '.DS_Store' // Meaningless Mac folder metadata
@@ -427,7 +424,7 @@ if (!amMainInstance) {
         // delete all the installed server versions entirely before we start.
         if (serverPaths.length && !serverPaths.some((serverPath) => {
             try {
-                return semver.gt(serverPath, BUNDLED_SERVER_VERSION)
+                return semverGt(serverPath, BUNDLED_SERVER_VERSION)
             } catch (e) {
                 return false;
             }
