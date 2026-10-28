@@ -634,16 +634,19 @@ if (!amMainInstance) {
             return undefined;
         });
 
-    cleanupOldServers().catch(console.log).then(async () => {
-        // N.b. we pick the ports as late as possible to limit TOCTOU window
-        const ports = DEV_MODE
-            ? { serverPort: 45457, mockttpPort: 45456 }
-            : await pickServerPorts();
+    // Ports are picked in parallel with cleanup, since windows can't open until they're known
+    const portsPicked = (DEV_MODE
+        ? Promise.resolve({ serverPort: 45457, mockttpPort: 45456 })
+        : pickServerPorts()
+    ).then((ports) => {
         serverPorts = ports;
         portsResolved.resolve(ports);
+    });
 
-        return startServer();
-    }).catch((err) => {
+    Promise.all([
+        cleanupOldServers().catch(console.log),
+        portsPicked
+    ]).then(() => startServer()).catch((err) => {
         console.error('Failed to start server, exiting.', err);
 
         // Hide immediately, shutdown entirely after a brief pause for Sentry
